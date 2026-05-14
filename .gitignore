@@ -1,0 +1,9 @@
+node_modules
+.next
+.next-verify
+.codex-git
+.npm-cache
+out
+dist
+.env*.local
+*.log

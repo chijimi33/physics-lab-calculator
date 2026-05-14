@@ -1,0 +1,33 @@
+{
+  "name": "physics-lab-calculator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "katex": "^0.16.46",
+    "next": "^16.2.6",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-katex": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.18",
+    "@types/react": "19.0.12",
+    "@types/react-katex": "^3.0.4",
+    "@types/react-dom": "19.0.4",
+    "autoprefixer": "10.4.21",
+    "postcss": "8.5.10",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.8.3",
+    "vitest": "latest"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
+  }
+}
