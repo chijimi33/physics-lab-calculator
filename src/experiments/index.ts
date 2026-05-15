@@ -1,7 +1,12 @@
 import { metalRodDensityExperiment } from "./metalRodDensity.definition";
 import { fallingMotionExperiment } from "./fallingMotion.definition";
+import { simplePendulumExperiment } from "./simplePendulum.definition";
 
-export const experiments = [metalRodDensityExperiment, fallingMotionExperiment];
+export const experiments = [
+  metalRodDensityExperiment,
+  fallingMotionExperiment,
+  simplePendulumExperiment,
+];
 
 export type {
   CalculationResult,

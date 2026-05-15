@@ -10,6 +10,7 @@ https://physics-lab-calculator.vercel.app/
 
 - 第1回実験: https://physics-lab-calculator.vercel.app/experiments/density-metal-rod
 - 第2回実験: https://physics-lab-calculator.vercel.app/experiments/falling-motion
+- 第3回実験: https://physics-lab-calculator.vercel.app/experiments/simple-pendulum
 
 ## 利用上の注意
 
@@ -22,6 +23,7 @@ https://physics-lab-calculator.vercel.app/
 
 - 第1回実験「金属棒の密度の測定」
 - 第2回実験「落下の実験」
+- 第3回実験「単振り子」
 - 測定値の入力、平均値、残差、標準偏差、標準誤差の計算
 - 有効数字と誤差桁に合わせた表示
 - 表示有効数字をユーザーが選択可能

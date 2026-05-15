@@ -2,8 +2,10 @@ node_modules
 .next
 .next-verify
 .next-quality-check
+.next-pendulum-check
 .codex-git
 .npm-cache
+pdf-pages
 out
 dist
 .env*.local
