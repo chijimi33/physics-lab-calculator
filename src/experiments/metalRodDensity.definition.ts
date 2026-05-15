@@ -203,7 +203,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
       label: "密度の相対誤差",
       kind: "percent",
       formula:
-        "m_\\rho = \\rho \\sqrt{\\left(\\frac{m_a}{\\bar{a}}\\right)^2 + \\left(2\\frac{m_D}{\\bar{D}}\\right)^2}",
+        "\\frac{m_\\rho}{\\rho} = \\sqrt{\\left(\\frac{m_a}{\\bar{a}}\\right)^2 + \\left(2\\frac{m_D}{\\bar{D}}\\right)^2}",
     },
   ],
   formulas: [
