@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { experiments } from "@/experiments";
 import { MeasurementTable } from "@/components/measurement-table";
 import { ResultCard } from "@/components/result-card";
@@ -27,6 +27,23 @@ type ExperimentRunnerProps = {
 };
 
 type CellWarnings = Record<string, string[][][]>;
+
+const DEFAULT_OUTPUT_SIGNIFICANT_DIGITS = 3;
+const MIN_OUTPUT_SIGNIFICANT_DIGITS = 2;
+const MAX_OUTPUT_SIGNIFICANT_DIGITS = 6;
+
+function clampOutputSignificantDigits(value: unknown): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isInteger(numeric)) {
+    return DEFAULT_OUTPUT_SIGNIFICANT_DIGITS;
+  }
+
+  return Math.min(
+    Math.max(numeric, MIN_OUTPUT_SIGNIFICANT_DIGITS),
+    MAX_OUTPUT_SIGNIFICANT_DIGITS,
+  );
+}
 
 function updateCell(
   state: RawInputState,
@@ -99,31 +116,41 @@ function formatResultValue(
   experiment: ExperimentDefinition,
   key: string,
   values: Record<string, number | null>,
+  significantDigits: number,
 ): string {
   const resultDefinition = experiment.results.find((result) => result.key === key);
   const value = values[key] ?? null;
 
   if (resultDefinition?.kind === "percent") {
-    return value === null ? "-" : `${formatToSignificantFigures(value * 100, 3)} %`;
+    return value === null
+      ? "-"
+      : `${formatToSignificantFigures(value * 100, significantDigits)} %`;
   }
 
   if (resultDefinition?.kind === "valueWithError") {
     const formatted = roundByError(
       value,
       resultDefinition.errorKey ? values[resultDefinition.errorKey] ?? null : null,
+      significantDigits,
     ).combined;
     return withUnit(formatted, resultDefinition.unit);
   }
 
-  return withUnit(formatToSignificantFigures(value, 3), resultDefinition?.unit);
+  return withUnit(
+    formatToSignificantFigures(value, significantDigits),
+    resultDefinition?.unit,
+  );
 }
 
-function formatComputedValue(value: ComputedValue | undefined): string {
+function formatComputedValue(
+  value: ComputedValue | undefined,
+  significantDigits: number,
+): string {
   if (typeof value === "string") {
     return value;
   }
 
-  return formatToSignificantFigures(value ?? null, 3);
+  return formatToSignificantFigures(value ?? null, significantDigits);
 }
 
 function validateInputTable(
@@ -239,6 +266,16 @@ function ExperimentWorkspace({
 }) {
   const { rawInput, setRawInput, resetInput } =
     usePersistedExperimentInput(experiment);
+  const outputDigitsStorageKey = useMemo(
+    () => `physics-lab:${experiment.id}:output-significant-digits`,
+    [experiment.id],
+  );
+  const [outputSignificantDigits, setOutputSignificantDigits] = useState(
+    DEFAULT_OUTPUT_SIGNIFICANT_DIGITS,
+  );
+  const [loadedOutputDigitsKey, setLoadedOutputDigitsKey] = useState<
+    string | null
+  >(null);
 
   const calculation = useMemo(
     () => experiment.calculate(rawInput),
@@ -252,9 +289,42 @@ function ExperimentWorkspace({
     ...inputWarnings.globalWarnings,
     ...(calculation.warnings ?? []),
   ];
+  const intermediateSignificantDigits = outputSignificantDigits + 1;
 
   const formatValue = (key: string) =>
-    formatResultValue(experiment, key, calculation.values);
+    formatResultValue(
+      experiment,
+      key,
+      calculation.values,
+      outputSignificantDigits,
+    );
+
+  useEffect(() => {
+    setLoadedOutputDigitsKey(null);
+    try {
+      const stored = window.localStorage.getItem(outputDigitsStorageKey);
+      setOutputSignificantDigits(clampOutputSignificantDigits(stored));
+    } catch {
+      setOutputSignificantDigits(DEFAULT_OUTPUT_SIGNIFICANT_DIGITS);
+    } finally {
+      setLoadedOutputDigitsKey(outputDigitsStorageKey);
+    }
+  }, [outputDigitsStorageKey]);
+
+  useEffect(() => {
+    if (loadedOutputDigitsKey !== outputDigitsStorageKey) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      outputDigitsStorageKey,
+      String(outputSignificantDigits),
+    );
+  }, [
+    loadedOutputDigitsKey,
+    outputDigitsStorageKey,
+    outputSignificantDigits,
+  ]);
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 lg:px-10">
@@ -273,6 +343,32 @@ function ExperimentWorkspace({
               </h1>
             </div>
             <div className="flex flex-wrap gap-2">
+              <label className="flex items-center gap-2 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                表示有効数字
+                <select
+                  value={outputSignificantDigits}
+                  onChange={(event) =>
+                    setOutputSignificantDigits(
+                      clampOutputSignificantDigits(event.target.value),
+                    )
+                  }
+                  className="rounded border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-blue-100"
+                >
+                  {Array.from(
+                    {
+                      length:
+                        MAX_OUTPUT_SIGNIFICANT_DIGITS -
+                        MIN_OUTPUT_SIGNIFICANT_DIGITS +
+                        1,
+                    },
+                    (_unused, index) => MIN_OUTPUT_SIGNIFICANT_DIGITS + index,
+                  ).map((digits) => (
+                    <option key={digits} value={digits}>
+                      {digits}桁
+                    </option>
+                  ))}
+                </select>
+              </label>
               {experiment.exportCsv ? (
                 <button
                   type="button"
@@ -324,6 +420,7 @@ function ExperimentWorkspace({
                       calculation.computedTables?.[table.id]?.[rowIndex]?.[
                         column.key
                       ],
+                      intermediateSignificantDigits,
                     ),
                   ),
                 }))}
@@ -389,7 +486,7 @@ function ExperimentWorkspace({
               <h2 className="text-lg font-bold text-ink">計算結果</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 計算内部では丸めず、表示時のみ有効数字と誤差桁に合わせて丸めています。
-                レポートへ転記する前に、実験書の指定単位と丸め規則を確認してください。
+                表の中間値は表示有効数字より1桁多く表示します。レポートへ転記する前に、実験書の指定単位と丸め規則を確認してください。
               </p>
               <div className="mt-4 grid gap-3">
                 {experiment.results.map((result) => {
