@@ -13,6 +13,7 @@ export type MetalRodDensityRawInput = {
   diameters: string[];
   lengths: string[];
   masses: string[];
+  referenceDensity?: string;
 };
 
 export type MetalRodDensityResult = {
@@ -31,8 +32,20 @@ export type MetalRodDensityResult = {
   rho: number | null;
   relativeError: number | null;
   mRho: number | null;
+  referenceDensity: number | null;
+  referenceDifference: number | null;
+  referencePercentDifference: number | null;
   warnings: string[];
 };
+
+export const METAL_ROD_REFERENCE_DENSITIES = [
+  { id: "copper", material: "銅", density: 8.6, displayDensity: "8.60" },
+  { id: "brass", material: "真鍮", density: 8.47, displayDensity: "8.47" },
+] as const;
+
+const REFERENCE_DENSITIES = Object.fromEntries(
+  METAL_ROD_REFERENCE_DENSITIES.map((item) => [item.id, item.density]),
+) as Record<string, number>;
 
 function compactMeasurements(values: string[]): MeasurementValue[] {
   return values
@@ -117,11 +130,26 @@ export function calculateMetalRodDensity(
   );
   const mRho =
     rho !== null && relativeError !== null ? Math.abs(rho) * relativeError : null;
+  const referenceDensity =
+    input.referenceDensity === undefined || input.referenceDensity === ""
+      ? null
+      : REFERENCE_DENSITIES[input.referenceDensity] ?? null;
+  const referenceDifference =
+    rho !== null && referenceDensity !== null ? rho - referenceDensity : null;
+  const referencePercentDifference =
+    referenceDifference !== null && referenceDensity !== null && referenceDensity !== 0
+      ? Math.abs(referenceDifference / referenceDensity)
+      : null;
 
   const warnings = [
     warnIfIncomplete("直径 D", 15, dValues.length),
     warnIfIncomplete("長さ L", 5, lValues.length),
     warnIfIncomplete("質量 M", 5, mValues.length),
+    input.referenceDensity !== undefined &&
+    input.referenceDensity !== "" &&
+    referenceDensity === null
+      ? "文献値の選択が読み取れません。"
+      : null,
   ].filter((warning): warning is string => warning !== null);
 
   return {
@@ -140,6 +168,9 @@ export function calculateMetalRodDensity(
     rho,
     relativeError,
     mRho,
+    referenceDensity,
+    referenceDifference,
+    referencePercentDifference,
     warnings,
   };
 }

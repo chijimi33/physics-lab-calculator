@@ -5,7 +5,10 @@ import type {
   ExperimentDefinition,
   RawInputState,
 } from "./types";
-import { calculateMetalRodDensity } from "./metalRodDensity";
+import {
+  METAL_ROD_REFERENCE_DENSITIES,
+  calculateMetalRodDensity,
+} from "./metalRodDensity";
 import { units } from "@/src/lib/physics/units";
 
 function getRawColumn(
@@ -32,6 +35,10 @@ function valueFromComputed(
   key: string,
 ): ComputedValue {
   return calculation.computedTables?.[tableId]?.[rowIndex]?.[key] ?? null;
+}
+
+function selectedReferenceDensity(input: RawInputState): string {
+  return input.referenceDensity?.[0]?.[0] ?? "";
 }
 
 function exportMetalRodDensityCsv({
@@ -87,6 +94,9 @@ function exportMetalRodDensityCsv({
     csvRow(["m_a", formatValue("mA")]),
     csvRow(["rho +/- m_rho", formatValue("rho")]),
     csvRow(["relative error", formatValue("relativeError")]),
+    csvRow(["reference density", formatValue("referenceDensity")]),
+    csvRow(["rho - reference", formatValue("referenceDifference")]),
+    csvRow(["absolute percent difference", formatValue("referencePercentDifference")]),
   );
 
   return rows.join("\n");
@@ -142,6 +152,23 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
         { key: "a", label: "a_i = M_i / L_i" },
         { key: "rA", label: "r_a_i" },
       ],
+    },
+    {
+      id: "referenceDensity",
+      title: "3. 文献値の候補",
+      rowCount: 1,
+      columns: [
+        {
+          key: "material",
+          label: "材質",
+          inputType: "select",
+          options: METAL_ROD_REFERENCE_DENSITIES.map((item) => ({
+            label: `${item.material} ${item.displayDensity} ${units.density}`,
+            value: item.id,
+          })),
+        },
+      ],
+      computedColumns: [{ key: "referenceDensity", label: "文献値 [g/cm^3]" }],
     },
   ],
   results: [
@@ -205,6 +232,27 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
       formula:
         "\\frac{m_\\rho}{\\rho} = \\sqrt{\\left(\\frac{m_a}{\\bar{a}}\\right)^2 + \\left(2\\frac{m_D}{\\bar{D}}\\right)^2}",
     },
+    {
+      key: "referenceDensity",
+      label: "選択した文献値",
+      unit: units.density,
+      detail: "銅または真鍮の候補値",
+    },
+    {
+      key: "referenceDifference",
+      label: "文献値との差",
+      unit: units.density,
+      formula: "\\rho - \\rho_{\\mathrm{ref}}",
+      detail: "測定値 rho から選択した文献値を引いた値",
+    },
+    {
+      key: "referencePercentDifference",
+      label: "文献値との差の割合",
+      kind: "percent",
+      formula:
+        "\\left|\\frac{\\rho - \\rho_{\\mathrm{ref}}}{\\rho_{\\mathrm{ref}}}\\right|",
+      detail: "文献値に対するずれの割合",
+    },
   ],
   formulas: [
     {
@@ -254,6 +302,11 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
       expression: "\\rho \\pm m_\\rho",
       description: "誤差 m_rho の桁に合わせて rho を丸めます。",
     },
+    {
+      label: "文献値との差",
+      expression: "\\rho - \\rho_{\\mathrm{ref}}",
+      description: "選択した銅または真鍮の文献値と測定結果を比較します。",
+    },
   ],
   note:
     "計算内部では丸めず、表示時のみ有効数字と誤差桁に合わせて丸めています。レポートへ転記する前に、実験書の指定単位と丸め規則を確認してください。入力文字列を保持して、10.0 と 10.00 の桁情報を失わないようにしています。新しい実験は src/experiments に定義ファイルを追加し、src/experiments/index.ts に登録してください。",
@@ -262,6 +315,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
       diameters: getRawColumn(input, "diameters", 0),
       lengths: getRawColumn(input, "samples", 0),
       masses: getRawColumn(input, "samples", 1),
+      referenceDensity: selectedReferenceDensity(input),
     });
 
     return {
@@ -275,6 +329,9 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
         rho: result.rho,
         mRho: result.mRho,
         relativeError: result.relativeError,
+        referenceDensity: result.referenceDensity,
+        referenceDifference: result.referenceDifference,
+        referencePercentDifference: result.referencePercentDifference,
       },
       computedTables: {
         diameters: result.dResiduals.map((value) => ({ rD: value })),
@@ -282,6 +339,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
           a: value,
           rA: result.aResiduals[index] ?? null,
         })),
+        referenceDensity: [{ referenceDensity: result.referenceDensity }],
       },
       warnings: result.warnings,
     };

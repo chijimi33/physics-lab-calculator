@@ -104,13 +104,21 @@ export function usePersistedExperimentInput(experiment: ExperimentDefinition) {
       return;
     }
 
-    window.localStorage.setItem(storageKey, JSON.stringify(rawInput));
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(rawInput));
+    } catch {
+      // 保存できない環境でも、入力と計算はそのまま使えるようにする。
+    }
   }, [loadedStorageKey, rawInput, storageKey]);
 
   function resetInput() {
     const initial = createInitialState(experiment);
     setRawInput(initial);
-    window.localStorage.removeItem(storageKey);
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      // localStorage が使えない場合でも、画面上の入力リセットは完了させる。
+    }
   }
 
   return {

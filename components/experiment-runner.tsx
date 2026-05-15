@@ -101,8 +101,17 @@ function resizeRows(
   tableId: string,
   rowCount: number,
 ): RawInputState {
+  const table = experiment.inputs.find((input) => input.id === tableId);
+  const minRows = table?.minRows ?? 1;
+  const maxRows = table?.maxRows ?? table?.rowCount ?? minRows;
+
+  if (!Number.isInteger(rowCount)) {
+    return state;
+  }
+
+  const safeRowCount = Math.min(Math.max(rowCount, minRows), maxRows);
   const currentRows = state[tableId] ?? [];
-  const nextRows = Array.from({ length: rowCount }, (_unused, index) =>
+  const nextRows = Array.from({ length: safeRowCount }, (_unused, index) =>
     currentRows[index] ?? createEmptyRow(experiment, tableId),
   );
 
@@ -240,8 +249,11 @@ function downloadCsv(filename: string, csv: string) {
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export function ExperimentRunner({ slug }: ExperimentRunnerProps) {
@@ -327,10 +339,14 @@ function ExperimentWorkspace({
       return;
     }
 
-    window.localStorage.setItem(
-      outputDigitsStorageKey,
-      String(outputSignificantDigits),
-    );
+    try {
+      window.localStorage.setItem(
+        outputDigitsStorageKey,
+        String(outputSignificantDigits),
+      );
+    } catch {
+      // 保存に失敗しても、計算と表示は続ける。
+    }
   }, [
     loadedOutputDigitsKey,
     outputDigitsStorageKey,
