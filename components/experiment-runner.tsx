@@ -338,9 +338,9 @@ function ExperimentWorkspace({
   ]);
 
   return (
-    <main className="min-h-screen px-4 py-5 sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-6xl rounded border border-rule bg-paper p-4 shadow-report sm:p-6">
-        <header className="mb-6 border-b-2 border-ink pb-4">
+    <main className="min-h-screen px-3 py-4 sm:px-6 sm:py-5 lg:px-10">
+      <div className="mx-auto max-w-6xl space-y-5">
+        <header className="rounded border border-rule bg-paper p-4 shadow-report sm:p-6">
           <Link href="/" className="text-sm font-semibold text-accent">
             実験一覧へ戻る
           </Link>
@@ -349,7 +349,7 @@ function ExperimentWorkspace({
               <p className="text-sm font-semibold tracking-[0.18em] text-slate-600">
                 第{experiment.number}回実験
               </p>
-              <h1 className="mt-2 text-3xl font-bold text-ink">
+              <h1 className="mt-2 break-words text-2xl font-bold leading-tight text-ink sm:text-3xl">
                 {experiment.title}
               </h1>
             </div>
