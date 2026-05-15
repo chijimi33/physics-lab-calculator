@@ -23,6 +23,7 @@ export type MetalRodDensityResult = {
   aValues: Array<number | null>;
   dAverage: number | null;
   dResiduals: Array<number | null>;
+  dSquaredResiduals: Array<number | null>;
   sigmaD: number | null;
   mD: number | null;
   aAverage: number | null;
@@ -82,6 +83,12 @@ function alignedResiduals(
   );
 }
 
+function squareFiniteValues(values: Array<number | null>): Array<number | null> {
+  return values.map((value) =>
+    value !== null && Number.isFinite(value) ? value ** 2 : null,
+  );
+}
+
 export function calculateMetalRodDensity(
   input: MetalRodDensityRawInput,
 ): MetalRodDensityResult {
@@ -108,6 +115,7 @@ export function calculateMetalRodDensity(
 
   const dAverage = average(dNumbers);
   const dResiduals = alignedResiduals(dRowValues, dAverage);
+  const dSquaredResiduals = squareFiniteValues(dResiduals);
   const sigmaD = sampleStandardDeviation(dNumbers);
   const mD = standardErrorOfMean(dNumbers);
 
@@ -159,6 +167,7 @@ export function calculateMetalRodDensity(
     aValues,
     dAverage,
     dResiduals,
+    dSquaredResiduals,
     sigmaD,
     mD,
     aAverage,

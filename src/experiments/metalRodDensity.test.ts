@@ -27,6 +27,8 @@ describe("calculateMetalRodDensity", () => {
     });
 
     expect(result.dAverage).toBeCloseTo(1);
+    expect(result.dSquaredResiduals).toHaveLength(15);
+    expect(result.dSquaredResiduals[1]).toBeCloseTo(result.dResiduals[1]! ** 2);
     expect(result.aValues).toHaveLength(5);
     expect(result.aAverage).toBeCloseTo(7.85, 2);
     expect(result.rho).toBeCloseTo((4 * result.aAverage!) / Math.PI, 6);

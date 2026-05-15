@@ -51,7 +51,7 @@ function exportMetalRodDensityCsv({
     csvRow(["第1回実験", "金属棒の密度の測定"]),
     "",
     csvRow(["D measurements"]),
-    csvRow(["No.", "D [cm]", "r_D_i"]),
+    csvRow(["No.", "D [cm]", "r_D_i", "r_D_i^2"]),
   ];
 
   (input.diameters ?? []).forEach((row, index) => {
@@ -60,6 +60,9 @@ function exportMetalRodDensityCsv({
         index + 1,
         row[0] ?? "",
         formatComputedValue(valueFromComputed(calculation, "diameters", index, "rD")),
+        formatComputedValue(
+          valueFromComputed(calculation, "diameters", index, "rDSquared"),
+        ),
       ]),
     );
   });
@@ -125,7 +128,10 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
           warnOnZero: true,
         },
       ],
-      computedColumns: [{ key: "rD", label: "r_D_i" }],
+      computedColumns: [
+        { key: "rD", label: "r_D_i" },
+        { key: "rDSquared", label: "r_D_i^2" },
+      ],
     },
     {
       id: "samples",
@@ -334,7 +340,10 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
         referencePercentDifference: result.referencePercentDifference,
       },
       computedTables: {
-        diameters: result.dResiduals.map((value) => ({ rD: value })),
+        diameters: result.dResiduals.map((value, index) => ({
+          rD: value,
+          rDSquared: result.dSquaredResiduals[index] ?? null,
+        })),
         samples: result.aValues.map((value, index) => ({
           a: value,
           rA: result.aResiduals[index] ?? null,
