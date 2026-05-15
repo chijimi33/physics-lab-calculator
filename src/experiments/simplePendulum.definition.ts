@@ -127,12 +127,13 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "amplitudes",
       title: "2. 実験1: 周期の振幅依存性",
-      rowCount: 12,
+      rowCount: 13,
       minRows: 2,
       maxRows: 13,
       dynamicRows: true,
       rowCountMode: "select",
       rowLabel: "振幅",
+      required: true,
       columns: [
         { key: "phi", label: "phi_0", unit: "deg", allowNegative: false },
         { key: "time10", label: "10回の時間", unit: units.second, allowNegative: false, warnOnZero: true },

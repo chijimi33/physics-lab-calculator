@@ -33,7 +33,13 @@ export type SimplePendulumResult = {
 };
 
 function parseNumber(value: string | undefined): number | null {
-  const numeric = Number((value ?? "").trim());
+  const trimmed = (value ?? "").trim();
+
+  if (trimmed === "") {
+    return null;
+  }
+
+  const numeric = Number(trimmed);
   return Number.isFinite(numeric) ? numeric : null;
 }
 

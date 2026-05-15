@@ -3,6 +3,7 @@ node_modules
 .next-verify
 .next-quality-check
 .next-pendulum-check
+.next-pendulum-review-check
 .codex-git
 .npm-cache
 pdf-pages
