@@ -387,6 +387,10 @@ function ExperimentWorkspace({
 
             <section className="rounded border border-rule bg-stone-50 p-4">
               <h2 className="text-lg font-bold text-ink">計算結果</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                計算内部では丸めず、表示時のみ有効数字と誤差桁に合わせて丸めています。
+                レポートへ転記する前に、実験書の指定単位と丸め規則を確認してください。
+              </p>
               <div className="mt-4 grid gap-3">
                 {experiment.results.map((result) => {
                   const value = formatValue(result.key);

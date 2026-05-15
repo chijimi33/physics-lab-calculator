@@ -255,7 +255,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
     },
   ],
   note:
-    "入力文字列を保持して、10.0 と 10.00 の桁情報を失わないようにしています。新しい実験は src/experiments に定義ファイルを追加し、src/experiments/index.ts に登録してください。",
+    "計算内部では丸めず、表示時のみ有効数字と誤差桁に合わせて丸めています。レポートへ転記する前に、実験書の指定単位と丸め規則を確認してください。入力文字列を保持して、10.0 と 10.00 の桁情報を失わないようにしています。新しい実験は src/experiments に定義ファイルを追加し、src/experiments/index.ts に登録してください。",
   calculate(input) {
     const result = calculateMetalRodDensity({
       diameters: getRawColumn(input, "diameters", 0),

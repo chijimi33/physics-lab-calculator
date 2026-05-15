@@ -240,7 +240,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     },
   ],
   note:
-    "グラフ表示は未実装です。TODO: Recharts などを導入して t-x, t-v, t-a, t^2-x グラフを追加します。",
+    "計算内部では丸めず、表示時のみ有効数字に合わせて丸めています。位置は内部で m に変換して計算します。レポートへ転記する前に、実験書の指定単位、丸め規則、差分計算の扱いを確認してください。グラフ表示は未実装です。TODO: Recharts などを導入して t-x, t-v, t-a, t^2-x グラフを追加します。",
   calculate(input: RawInputState) {
     const result = calculateFallingMotion({
       freeFall: input.freeFall ?? [],
