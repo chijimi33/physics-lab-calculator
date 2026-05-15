@@ -98,10 +98,6 @@ export function formatToSignificantFigures(value: number | null, digits = 3): st
   }
 
   const exponent = Math.floor(Math.log10(Math.abs(value)));
-  if (exponent >= 5 || exponent <= -3) {
-    return value.toExponential(digits - 1);
-  }
-
   const decimals = Math.max(digits - exponent - 1, 0);
   return value.toFixed(decimals);
 }

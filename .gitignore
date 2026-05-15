@@ -4,6 +4,7 @@ node_modules
 .next-quality-check
 .next-pendulum-check
 .next-pendulum-review-check
+.next-no-exponent-check
 .codex-git
 .npm-cache
 pdf-pages
