@@ -99,7 +99,7 @@ export function formatToSignificantFigures(value: number | null, digits = 3): st
 
   const exponent = Math.floor(Math.log10(Math.abs(value)));
   const decimals = Math.max(digits - exponent - 1, 0);
-  return value.toFixed(decimals);
+  return roundToSignificantFigures(value, digits).toFixed(decimals);
 }
 
 export function roundForAddition(values: MeasurementValue[], result: number): string {

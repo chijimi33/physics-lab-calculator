@@ -38,7 +38,7 @@ describe("significant figures", () => {
 
   it("formats significant figures without scientific notation", () => {
     expect(formatToSignificantFigures(0.0001234, 3)).toBe("0.000123");
-    expect(formatToSignificantFigures(123456, 3)).toBe("123456");
+    expect(formatToSignificantFigures(123456, 3)).toBe("123000");
   });
 
   it("roundForAddition uses the coarsest decimal place", () => {
