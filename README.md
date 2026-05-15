@@ -2,6 +2,10 @@
 
 Next.js App Router、TypeScript、Tailwind CSSで作成した、大学物理学実験向けの計算補助Webアプリです。
 
+## 公開URL
+
+https://physics-lab-calculator.vercel.app/
+
 ## 機能
 
 - 第1回実験「金属棒の密度の測定」
