@@ -6,6 +6,17 @@ Next.js App Router、TypeScript、Tailwind CSSで作成した、大学物理学�
 
 https://physics-lab-calculator.vercel.app/
 
+## 実験ページ
+
+- 第1回実験: https://physics-lab-calculator.vercel.app/experiments/density-metal-rod
+- 第2回実験: https://physics-lab-calculator.vercel.app/experiments/falling-motion
+
+## 利用上の注意
+
+- 計算内部では丸めず、表示時のみ有効数字と誤差桁に合わせて丸めています。
+- レポートへ転記する前に、実験書で指定された単位、丸め規則、誤差評価方法を確認してください。
+- 入力値はブラウザのlocalStorageに保存されます。共有端末では使用後に「入力をリセット」を押してください。
+
 ## 機能
 
 - 第1回実験「金属棒の密度の測定」
