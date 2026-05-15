@@ -111,11 +111,7 @@ export function MeasurementTable({
                       </select>
                     ) : (
                       <input
-                        type={
-                          columnDefinitions?.[columnIndex]?.inputType === "text"
-                            ? "text"
-                            : "number"
-                        }
+                        type="text"
                         inputMode={
                           columnDefinitions?.[columnIndex]?.inputType === "text"
                             ? "text"
