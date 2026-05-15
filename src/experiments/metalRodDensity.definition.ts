@@ -38,6 +38,7 @@ function exportMetalRodDensityCsv({
   input,
   calculation,
   formatValue,
+  formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
     csvRow(["第1回実験", "金属棒の密度の測定"]),
@@ -51,7 +52,7 @@ function exportMetalRodDensityCsv({
       csvRow([
         index + 1,
         row[0] ?? "",
-        valueFromComputed(calculation, "diameters", index, "rD"),
+        formatComputedValue(valueFromComputed(calculation, "diameters", index, "rD")),
       ]),
     );
   });
@@ -68,8 +69,8 @@ function exportMetalRodDensityCsv({
         index + 1,
         row[0] ?? "",
         row[1] ?? "",
-        valueFromComputed(calculation, "samples", index, "a"),
-        valueFromComputed(calculation, "samples", index, "rA"),
+        formatComputedValue(valueFromComputed(calculation, "samples", index, "a")),
+        formatComputedValue(valueFromComputed(calculation, "samples", index, "rA")),
       ]),
     );
   });

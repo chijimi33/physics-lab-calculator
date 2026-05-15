@@ -176,6 +176,7 @@ export function roundByError(
   value: number | null,
   error: number | null,
   errorSignificantFigures = 1,
+  valueSignificantFigures = 3,
 ): { value: string; error: string; combined: string; decimalPlaces: number | null } {
   if (
     value === null ||
@@ -187,7 +188,10 @@ export function roundByError(
   }
 
   if (error === 0) {
-    const formattedValue = formatToSignificantFigures(value, 3);
+    const formattedValue = formatToSignificantFigures(
+      value,
+      valueSignificantFigures,
+    );
     return {
       value: formattedValue,
       error: "0",

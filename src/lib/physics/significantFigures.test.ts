@@ -53,6 +53,14 @@ describe("significant figures", () => {
     });
   });
 
+  it("roundByError respects value significant figures when error is zero", () => {
+    expect(roundByError(7.856, 0, 1, 5)).toMatchObject({
+      value: "7.8560",
+      error: "0",
+      combined: "7.8560 +/- 0",
+    });
+  });
+
   it("separates intermediate and final multiplication rounding", () => {
     const values = [parseMeasurementValue("2.0"), parseMeasurementValue("3.141")];
     const measurements = values.filter(

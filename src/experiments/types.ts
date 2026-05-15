@@ -61,6 +61,7 @@ export type CsvExportContext = {
   input: RawInputState;
   calculation: CalculationResult;
   formatValue: (key: string) => string;
+  formatComputedValue: (value: ComputedValue | undefined) => string;
 };
 
 export type ExperimentDefinition = {

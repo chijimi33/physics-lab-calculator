@@ -29,6 +29,7 @@ function exportFallingMotionCsv({
   input,
   calculation,
   formatValue,
+  formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
     csvRow(["第2回実験", "落下の実験"]),
@@ -44,9 +45,9 @@ function exportFallingMotionCsv({
         row[0] ?? "",
         row[1] ?? "",
         row[2] ?? "",
-        valueFromComputed(calculation, "freeFall", index, "v"),
-        valueFromComputed(calculation, "freeFall", index, "a"),
-        valueFromComputed(calculation, "freeFall", index, "g"),
+        formatComputedValue(valueFromComputed(calculation, "freeFall", index, "v")),
+        formatComputedValue(valueFromComputed(calculation, "freeFall", index, "a")),
+        formatComputedValue(valueFromComputed(calculation, "freeFall", index, "g")),
       ]),
     );
   });
@@ -65,8 +66,8 @@ function exportFallingMotionCsv({
         row[1] ?? "",
         row[2] ?? "",
         row[3] ?? "",
-        valueFromComputed(calculation, "resisted", index, "v"),
-        valueFromComputed(calculation, "resisted", index, "a"),
+        formatComputedValue(valueFromComputed(calculation, "resisted", index, "v")),
+        formatComputedValue(valueFromComputed(calculation, "resisted", index, "a")),
       ]),
     );
   });

@@ -132,6 +132,7 @@ function formatResultValue(
       value,
       resultDefinition.errorKey ? values[resultDefinition.errorKey] ?? null : null,
       significantDigits,
+      significantDigits,
     ).combined;
     return withUnit(formatted, resultDefinition.unit);
   }
@@ -151,6 +152,11 @@ function formatComputedValue(
   }
 
   return formatToSignificantFigures(value ?? null, significantDigits);
+}
+
+function createComputedValueFormatter(significantDigits: number) {
+  return (value: ComputedValue | undefined) =>
+    formatComputedValue(value, significantDigits);
 }
 
 function validateInputTable(
@@ -290,6 +296,11 @@ function ExperimentWorkspace({
     ...(calculation.warnings ?? []),
   ];
   const intermediateSignificantDigits = outputSignificantDigits + 1;
+  const formatIntermediateValue = createComputedValueFormatter(
+    intermediateSignificantDigits,
+  );
+  const formatCsvComputedValue = (value: ComputedValue | undefined) =>
+    value === null || value === undefined ? "" : formatIntermediateValue(value);
 
   const formatValue = (key: string) =>
     formatResultValue(
@@ -379,6 +390,7 @@ function ExperimentWorkspace({
                         input: rawInput,
                         calculation,
                         formatValue,
+                        formatComputedValue: formatCsvComputedValue,
                       }) ?? "",
                     )
                   }
@@ -416,11 +428,10 @@ function ExperimentWorkspace({
                   values: row,
                   warnings: inputWarnings.cellWarnings[table.id]?.[rowIndex],
                   computedValues: table.computedColumns?.map((column) =>
-                    formatComputedValue(
+                    formatIntermediateValue(
                       calculation.computedTables?.[table.id]?.[rowIndex]?.[
                         column.key
                       ],
-                      intermediateSignificantDigits,
                     ),
                   ),
                 }))}

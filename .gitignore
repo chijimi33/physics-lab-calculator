@@ -1,6 +1,7 @@
 node_modules
 .next
 .next-verify
+.next-quality-check
 .codex-git
 .npm-cache
 out
