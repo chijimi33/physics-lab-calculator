@@ -602,7 +602,7 @@ function ExperimentWorkspace({
         </header>
 
         <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             {experiment.inputs.map((table) => (
               <MeasurementTable
                 key={table.id}
@@ -686,7 +686,7 @@ function ExperimentWorkspace({
             ))}
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
             <section
               aria-label="利用上の注意"
               className="border border-rule bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700"

@@ -114,7 +114,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
   };
 
   return (
-    <section className="border border-rule bg-white p-3">
+    <section className="min-w-0 border border-rule bg-white p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-ink">{definition.title}</h3>
