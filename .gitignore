@@ -2,6 +2,7 @@ node_modules
 .next
 .next-verify
 .next-quality-check
+.next-operability-check
 .next-pendulum-check
 .next-pendulum-review-check
 .codex-git

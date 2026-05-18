@@ -122,18 +122,33 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "lengths",
       title: "1. 振り子の長さ",
+      description: "つり環から球の最下端までの長さ L と球の直径 D を入力します。l = L - D/2 は m に変換して表示します。",
       rowCount: 5,
       rowLabel: "測定",
       required: true,
       columns: [
-        { key: "L", label: "L", unit: units.centimeter, allowNegative: false, warnOnZero: true },
-        { key: "D", label: "D", unit: units.centimeter, allowNegative: false },
+        {
+          key: "L",
+          label: "L",
+          unit: units.centimeter,
+          placeholder: "例 100.0",
+          allowNegative: false,
+          warnOnZero: true,
+        },
+        {
+          key: "D",
+          label: "D",
+          unit: units.centimeter,
+          placeholder: "例 2.00",
+          allowNegative: false,
+        },
       ],
       computedColumns: [{ key: "l", label: "l = L - D/2 [m]" }],
     },
     {
       id: "amplitudes",
       title: "2. 実験1: 周期の振幅依存性",
+      description: "振幅 phi_0 と10回分の時間を入力します。周期 T と phi_0^2 は自動計算されます。",
       rowCount: 13,
       minRows: 2,
       maxRows: 13,
@@ -142,8 +157,21 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       rowLabel: "振幅",
       required: true,
       columns: [
-        { key: "phi", label: "phi_0", unit: "deg", allowNegative: false },
-        { key: "time10", label: "10回の時間", unit: units.second, allowNegative: false, warnOnZero: true },
+        {
+          key: "phi",
+          label: "phi_0",
+          unit: "deg",
+          placeholder: "例 5",
+          allowNegative: false,
+        },
+        {
+          key: "time10",
+          label: "10回の時間",
+          unit: units.second,
+          placeholder: "例 20.15",
+          allowNegative: false,
+          warnOnZero: true,
+        },
       ],
       computedColumns: [
         { key: "phiRad", label: "phi_0 [rad]" },
@@ -154,6 +182,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "gravity",
       title: "3. 実験2: 重力加速度の測定",
+      description: "振動回数 n と経過時間 t を入力します。t-n 回帰の傾きから周期 T を求めます。",
       rowCount: 20,
       minRows: 2,
       maxRows: 20,
@@ -162,8 +191,21 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       rowLabel: "点",
       required: true,
       columns: [
-        { key: "n", label: "振動回数 n", allowNegative: false, warnOnZero: true },
-        { key: "t", label: "経過時間 t", unit: units.second, allowNegative: false, warnOnZero: true },
+        {
+          key: "n",
+          label: "振動回数 n",
+          placeholder: "例 10",
+          allowNegative: false,
+          warnOnZero: true,
+        },
+        {
+          key: "t",
+          label: "経過時間 t",
+          unit: units.second,
+          placeholder: "例 20.15",
+          allowNegative: false,
+          warnOnZero: true,
+        },
       ],
       computedColumns: [
         { key: "predictedTime", label: "回帰 t [s]" },
@@ -206,12 +248,15 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       label: "t-n 回帰による周期 T",
       unit: units.second,
       formula: "t = Tn + b",
+      detail: "t-n グラフの回帰直線の傾き",
     },
     {
       key: "gravity",
       label: "重力加速度 g",
+      priority: "primary",
       unit: units.acceleration,
       formula: "g = \\frac{4\\pi^2 l}{T^2}",
+      detail: "l の平均値と t-n 回帰から求めた周期 T から計算",
     },
     {
       key: "gravityRelativeError",
@@ -261,6 +306,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "pendulum-phi-period",
       title: "T-phi_0",
+      description: "振幅の大きさと周期の関係を確認します。",
       kind: "scatter",
       xLabel: "phi_0",
       yLabel: "T",
@@ -271,6 +317,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "pendulum-phi2-period",
       title: "T-phi_0^2",
+      description: "測定点と T = a phi_0^2 + b の回帰直線を重ねています。切片 b は phi_0 = 0 の周期です。",
       kind: "scatter",
       xLabel: "phi_0^2",
       yLabel: "T",
@@ -284,6 +331,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "pendulum-n-time",
       title: "t-n",
+      description: "測定点と t = Tn + b の回帰直線を重ねています。傾き T を周期として使います。",
       kind: "scatter",
       xLabel: "n",
       yLabel: "t",

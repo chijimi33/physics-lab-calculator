@@ -123,6 +123,11 @@ export function GraphCard({ definition, data }: GraphCardProps) {
             {definition.xUnit ? ` [${definition.xUnit}]` : ""} / {definition.yLabel}
             {definition.yUnit ? ` [${definition.yUnit}]` : ""}
           </p>
+          {definition.description ? (
+            <p className="mt-1 text-sm leading-5 text-slate-600">
+              {definition.description}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -146,6 +151,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
             {definition.xLabel}
             {definition.xUnit ? ` [${definition.xUnit}]` : ""} と {definition.yLabel}
             {definition.yUnit ? ` [${definition.yUnit}]` : ""} のグラフ
+            {definition.description ? `。${definition.description}` : ""}
           </desc>
           <line x1={PADDING} y1={HEIGHT - PADDING} x2={WIDTH - PADDING / 2} y2={HEIGHT - PADDING} stroke="#94a3b8" />
           <line x1={PADDING} y1={PADDING / 2} x2={PADDING} y2={HEIGHT - PADDING} stroke="#94a3b8" />
@@ -170,7 +176,13 @@ export function GraphCard({ definition, data }: GraphCardProps) {
                 return (
                   <g key={series.key}>
                     {kind === "line" || kind === "regression" || kind === "residual" ? (
-                      <path d={pathFor(points, scales.scaleX, scales.scaleY)} fill="none" stroke={color} strokeWidth="2" />
+                      <path
+                        d={pathFor(points, scales.scaleX, scales.scaleY)}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth="2"
+                        strokeDasharray={kind === "regression" ? "5 4" : undefined}
+                      />
                     ) : null}
                     {points.map((point, pointIndex) => (
                       <circle
@@ -193,15 +205,27 @@ export function GraphCard({ definition, data }: GraphCardProps) {
         </svg>
       </div>
       <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-600">
-        {definition.series.map((series, index) => (
-          <span key={series.key} className="inline-flex items-center gap-1">
-            <span
-              className="h-2.5 w-2.5 border border-rule"
-              style={{ backgroundColor: COLORS[index % COLORS.length] }}
-            />
-            {series.label}
-          </span>
-        ))}
+        {definition.series.map((series, index) => {
+          const kind = series.kind ?? definition.kind;
+          const color = COLORS[index % COLORS.length];
+
+          return (
+            <span key={series.key} className="inline-flex items-center gap-1">
+              {kind === "regression" ? (
+                <span
+                  className="inline-block h-0 w-5 border-t-2"
+                  style={{ borderColor: color, borderTopStyle: "dashed" }}
+                />
+              ) : (
+                <span
+                  className="h-2.5 w-2.5 border border-rule"
+                  style={{ backgroundColor: color }}
+                />
+              )}
+              {series.label}
+            </span>
+          );
+        })}
       </div>
     </section>
   );

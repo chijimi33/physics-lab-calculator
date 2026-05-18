@@ -239,18 +239,19 @@ function validateInputTable(
 
       const value = Number(trimmed);
       if (!Number.isFinite(value)) {
-        cellWarnings[rowIndex][columnIndex] = "数値として読み取れません。";
+        cellWarnings[rowIndex][columnIndex] =
+          "数値として読み取れません。半角数字で入力してください。";
         return;
       }
 
       if (value < 0 && column.allowNegative !== true) {
         cellWarnings[rowIndex][columnIndex] =
-          "負の値です。単位や符号を確認してください。";
+          "負の値です。実験値として正しい場合を除き、単位や符号を確認してください。";
       }
 
       if (value === 0 && column.warnOnZero) {
         cellWarnings[rowIndex][columnIndex] =
-          "0 です。割り算や差分に使う値なら確認してください。";
+          "0 が入力されています。割り算・差分・周期計算に使う値なら確認してください。";
       }
     });
   });
@@ -259,7 +260,7 @@ function validateInputTable(
 
   if (table.required && filledRows < requiredRows) {
     globalWarnings.push(
-      `${table.title} は少なくとも ${requiredRows} 行の入力が必要です。現在 ${filledRows} 行だけ入力されています。`,
+      `${table.title}: ${requiredRows}行以上の入力が必要です。現在は${filledRows}行です。`,
     );
   }
 
@@ -505,6 +506,12 @@ function ExperimentWorkspace({
               <h1 className="mt-1 break-words text-2xl font-semibold leading-tight text-ink sm:text-3xl">
                 {experiment.title}
               </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700">
+                {experiment.description}
+              </p>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+                左側の表に測定値を入力すると、右側に入力確認・計算結果・グラフが更新されます。
+              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <label className="flex items-center gap-2 border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
@@ -593,6 +600,7 @@ function ExperimentWorkspace({
                 key={table.id}
                 tableId={table.id}
                 title={table.title}
+                description={table.description}
                 columnDefinitions={table.columns}
                 columns={table.columns.map((column) =>
                   column.unit ? `${column.label} [${column.unit}]` : column.label,
@@ -670,7 +678,7 @@ function ExperimentWorkspace({
             ))}
           </div>
 
-          <aside className="space-y-4">
+          <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
             <section className="border border-rule bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
               このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。
             </section>
@@ -704,6 +712,7 @@ function ExperimentWorkspace({
                       key={result.key}
                       label={result.label}
                       value={value}
+                      priority={result.priority}
                       copyText={`${result.label},${value}`}
                       formula={
                         result.formula ? (

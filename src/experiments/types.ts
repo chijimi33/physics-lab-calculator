@@ -24,6 +24,7 @@ export type InputColumnDefinition = {
   key: string;
   label: string;
   unit?: string;
+  placeholder?: string;
   inputType?: "number" | "text" | "select";
   options?: Array<{ label: string; value: string }>;
   allowNegative?: boolean;
@@ -38,6 +39,7 @@ export type ComputedColumnDefinition = {
 export type InputDefinition = {
   id: string;
   title: string;
+  description?: string;
   rowCount: number;
   minRows?: number;
   maxRows?: number;
@@ -52,6 +54,7 @@ export type InputDefinition = {
 export type ResultDefinition = {
   key: string;
   label: string;
+  priority?: "primary" | "normal";
   kind?: "number" | "percent" | "valueWithError";
   errorKey?: string;
   unit?: string;
@@ -70,6 +73,7 @@ export type ExperimentStatus = "stable" | "beta" | "todo";
 export type GraphDefinition = {
   id: string;
   title: string;
+  description?: string;
   kind: "scatter" | "line" | "regression" | "residual";
   xLabel: string;
   yLabel: string;

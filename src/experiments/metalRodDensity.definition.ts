@@ -123,6 +123,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
     {
       id: "diameters",
       title: "1. 直径 D の測定",
+      description: "直径 D を15回入力します。単位は cm です。残差と残差の二乗は右列に自動表示されます。",
       rowCount: 15,
       rowLabel: "測定",
       required: true,
@@ -131,6 +132,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
           key: "D",
           label: "D",
           unit: units.centimeter,
+          placeholder: "例 1.234",
           allowNegative: false,
           warnOnZero: true,
         },
@@ -143,6 +145,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
     {
       id: "samples",
       title: "2. 長さ L と質量 M の測定",
+      description: "5本の試料について長さ L と質量 M を入力します。a_i = M_i / L_i は自動計算されます。",
       rowCount: 5,
       rowLabel: "試料",
       required: true,
@@ -151,6 +154,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
           key: "L",
           label: "L_i",
           unit: units.centimeter,
+          placeholder: "例 10.00",
           allowNegative: false,
           warnOnZero: true,
         },
@@ -158,6 +162,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
           key: "M",
           label: "M_i",
           unit: units.gram,
+          placeholder: "例 78.5",
           allowNegative: false,
         },
       ],
@@ -169,6 +174,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
     {
       id: "referenceDensity",
       title: "3. 文献値の候補",
+      description: "結果と比較する文献値を選びます。真鍮は合金のため文献値に幅があります。",
       rowCount: 1,
       columns: [
         {
@@ -231,7 +237,8 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
     },
     {
       key: "rho",
-      label: "rho",
+      label: "密度 rho ± m_rho",
+      priority: "primary",
       kind: "valueWithError",
       errorKey: "mRho",
       unit: units.density,

@@ -6,6 +6,7 @@ import type { InputColumnDefinition } from "@/src/experiments";
 type MeasurementTableProps = {
   tableId: string;
   title: string;
+  description?: string;
   columns: string[];
   columnDefinitions?: InputColumnDefinition[];
   rows: Array<{
@@ -32,6 +33,7 @@ type MeasurementTableProps = {
 export function MeasurementTable({
   tableId,
   title,
+  description,
   columns,
   columnDefinitions,
   rows,
@@ -87,7 +89,14 @@ export function MeasurementTable({
   return (
     <section className="overflow-hidden border border-rule bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-rule bg-slate-50 px-3 py-2">
-        <h2 className="text-base font-semibold text-ink">{title}</h2>
+        <div>
+          <h2 className="text-base font-semibold text-ink">{title}</h2>
+          {description ? (
+            <p className="mt-1 text-sm leading-5 text-slate-600">
+              {description}
+            </p>
+          ) : null}
+        </div>
         {rowCountOptions && onRowCountChange ? (
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             行数
@@ -176,6 +185,7 @@ export function MeasurementTable({
                         data-column-index={columnIndex}
                         aria-label={`${title} ${row.label} ${columns[columnIndex]}`}
                         type="text"
+                        placeholder={columnDefinitions?.[columnIndex]?.placeholder}
                         inputMode={
                           columnDefinitions?.[columnIndex]?.inputType === "text"
                             ? "text"

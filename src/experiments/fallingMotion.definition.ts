@@ -104,6 +104,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "freeFall",
       title: "1. 自由落下",
+      description: "時刻 t と位置 x を入力します。位置は選択した単位から内部で m に変換して計算します。",
       rowCount: 8,
       minRows: 2,
       maxRows: 20,
@@ -112,8 +113,19 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       rowLabel: "点",
       required: true,
       columns: [
-        { key: "t", label: "t_n", unit: "s", allowNegative: false },
-        { key: "x", label: "x_n", allowNegative: false },
+        {
+          key: "t",
+          label: "t_n",
+          unit: "s",
+          placeholder: "例 0.20",
+          allowNegative: false,
+        },
+        {
+          key: "x",
+          label: "x_n",
+          placeholder: "例 19.6",
+          allowNegative: false,
+        },
         {
           key: "unit",
           label: "位置単位",
@@ -133,6 +145,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "resisted",
       title: "2. 抵抗がある場合の落下",
+      description: "抵抗を受ける落下の時刻 t と位置 x を入力します。条件メモには物体や媒質の違いを書けます。",
       rowCount: 8,
       minRows: 2,
       maxRows: 20,
@@ -140,8 +153,19 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       rowCountMode: "select",
       rowLabel: "点",
       columns: [
-        { key: "t", label: "t_n", unit: "s", allowNegative: false },
-        { key: "x", label: "x_n", allowNegative: false },
+        {
+          key: "t",
+          label: "t_n",
+          unit: "s",
+          placeholder: "例 0.20",
+          allowNegative: false,
+        },
+        {
+          key: "x",
+          label: "x_n",
+          placeholder: "例 19.6",
+          allowNegative: false,
+        },
         {
           key: "unit",
           label: "位置単位",
@@ -151,7 +175,13 @@ export const fallingMotionExperiment: ExperimentDefinition = {
             { label: "cm", value: "cm" },
           ],
         },
-        { key: "note", label: "条件メモ", inputType: "text", allowNegative: true },
+        {
+          key: "note",
+          label: "条件メモ",
+          placeholder: "例 小球・空気中",
+          inputType: "text",
+          allowNegative: true,
+        },
       ],
       computedColumns: [
         { key: "v", label: "v_n [m/s]" },
@@ -163,6 +193,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       key: "gravityAverage",
       label: "g の平均値",
+      priority: "primary",
       unit: units.acceleration,
       formula: "g_n = \\frac{2x_n}{t_n^2}",
       detail: "t = 0 の点は除外",
@@ -175,8 +206,10 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       key: "gravityRegression",
       label: "線形回帰による g",
+      priority: "primary",
       unit: units.acceleration,
       formula: "x = A t^2,\\quad g = 2A",
+      detail: "自由落下 t^2-x グラフの回帰直線に対応",
     },
     {
       key: "maxResistanceVelocity",
@@ -251,6 +284,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "freefall-t-x",
       title: "自由落下 t-x",
+      description: "入力した時刻と位置の対応を確認します。外れ値や単位の取り違えを見つけるためのグラフです。",
       kind: "scatter",
       xLabel: "t",
       yLabel: "x",
@@ -261,6 +295,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "freefall-t-v",
       title: "自由落下 t-v",
+      description: "位置データから有限差分で求めた速度を表示します。",
       kind: "line",
       xLabel: "t",
       yLabel: "v",
@@ -271,6 +306,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "freefall-t-a",
       title: "自由落下 t-a",
+      description: "速度データから有限差分で求めた加速度を表示します。",
       kind: "line",
       xLabel: "t",
       yLabel: "a",
@@ -281,6 +317,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "freefall-t2-x",
       title: "自由落下 t^2-x",
+      description: "測定点と x = A t^2 の回帰直線を重ねています。傾き A から g = 2A を求めます。",
       kind: "scatter",
       xLabel: "t^2",
       yLabel: "x",
@@ -294,6 +331,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "resisted-t-x",
       title: "抵抗あり t-x",
+      description: "抵抗ありの測定点について、時刻と位置の変化を確認します。",
       kind: "scatter",
       xLabel: "t",
       yLabel: "x",
@@ -304,6 +342,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "resisted-t-v",
       title: "抵抗あり t-v",
+      description: "速度が一定値へ近づく傾向を確認します。",
       kind: "line",
       xLabel: "t",
       yLabel: "v",
@@ -314,6 +353,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
     {
       id: "resisted-t-a",
       title: "抵抗あり t-a",
+      description: "速度変化から求めた加速度を確認します。",
       kind: "line",
       xLabel: "t",
       yLabel: "a",
