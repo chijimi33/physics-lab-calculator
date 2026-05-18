@@ -242,7 +242,7 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
       key: "referenceDensity",
       label: "選択した文献値",
       unit: units.density,
-      detail: "銅または真鍮の候補値",
+      detail: "銅または真鍮の候補値。真鍮は合金のため文献値に幅があります。",
     },
     {
       key: "referenceDifference",

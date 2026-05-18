@@ -33,10 +33,10 @@ describe("calculateMetalRodDensity", () => {
     expect(result.aAverage).toBeCloseTo(7.85, 2);
     expect(result.rho).toBeCloseTo((4 * result.aAverage!) / Math.PI, 6);
     expect(result.mRho).toBeGreaterThan(0);
-    expect(result.referenceDensity).toBe(8.6);
-    expect(result.referenceDifference).toBeCloseTo(result.rho! - 8.6);
+    expect(result.referenceDensity).toBe(8.93);
+    expect(result.referenceDifference).toBeCloseTo(result.rho! - 8.93);
     expect(result.referencePercentDifference).toBeCloseTo(
-      Math.abs((result.rho! - 8.6) / 8.6),
+      Math.abs((result.rho! - 8.93) / 8.93),
     );
     expect(result.warnings).toEqual([]);
   });

@@ -40,8 +40,13 @@ export type MetalRodDensityResult = {
 };
 
 export const METAL_ROD_REFERENCE_DENSITIES = [
-  { id: "copper", material: "銅", density: 8.6, displayDensity: "8.60" },
-  { id: "brass", material: "真鍮", density: 8.47, displayDensity: "8.47" },
+  { id: "copper", material: "銅", density: 8.93, displayDensity: "8.93" },
+  {
+    id: "brass",
+    material: "真鍮",
+    density: 8.47,
+    displayDensity: "8.47",
+  },
 ] as const;
 
 const REFERENCE_DENSITIES = Object.fromEntries(
