@@ -337,7 +337,17 @@ function parseImportedInput(
     ) {
       return null;
     }
-    nextInput[table.id] = rows;
+
+    const minRows = table.dynamicRows ? table.minRows ?? 1 : table.rowCount;
+    const maxRows = table.dynamicRows ? table.maxRows ?? table.rowCount : table.rowCount;
+    const rowCount = Math.min(Math.max(rows.length, minRows), maxRows);
+    nextInput[table.id] = Array.from({ length: rowCount }, (_unused, rowIndex) => {
+      const importedRow = rows[rowIndex] ?? [];
+      const fallbackRow = createEmptyRow(experiment, table.id);
+      return table.columns.map(
+        (_column, columnIndex) => importedRow[columnIndex] ?? fallbackRow[columnIndex] ?? "",
+      );
+    });
   }
 
   return nextInput;

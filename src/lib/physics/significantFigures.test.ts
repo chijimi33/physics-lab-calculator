@@ -9,6 +9,7 @@ import {
   roundForMultiplicationFinal,
   roundForMultiplicationIntermediate,
   roundToSignificantFigures,
+  formatToSignificantFigures,
 } from "./significantFigures";
 
 describe("significant figures", () => {
@@ -33,6 +34,11 @@ describe("significant figures", () => {
   it("roundToSignificantFigures rounds by significant digits", () => {
     expect(roundToSignificantFigures(1234, 3)).toBe(1230);
     expect(roundToSignificantFigures(0.01234, 2)).toBe(0.012);
+  });
+
+  it("formats extreme values with scientific notation", () => {
+    expect(formatToSignificantFigures(1.234e-5, 3)).toBe("1.23e-5");
+    expect(formatToSignificantFigures(1.234e6, 3)).toBe("1.23e+6");
   });
 
   it("roundForAddition uses the coarsest decimal place", () => {

@@ -46,6 +46,7 @@ export function MeasurementTable({
 }: MeasurementTableProps) {
   const renderedComputedColumns =
     computedColumns ?? (computedHeader ? [computedHeader] : []);
+  const editableColumnCount = columnDefinitions?.length ?? columns.length;
 
   const focusCell = (rowIndex: number, columnIndex: number) => {
     const selector = `[data-table-id="${tableId}"][data-row-index="${rowIndex}"][data-column-index="${columnIndex}"]`;
@@ -58,7 +59,7 @@ export function MeasurementTable({
 
   const moveToNextCell = (rowIndex: number, columnIndex: number) => {
     const nextColumn = columnIndex + 1;
-    if (nextColumn < columns.length) {
+    if (nextColumn < editableColumnCount) {
       focusCell(rowIndex, nextColumn);
       return;
     }
@@ -149,6 +150,7 @@ export function MeasurementTable({
                         data-table-id={tableId}
                         data-row-index={rowIndex}
                         data-column-index={columnIndex}
+                        aria-label={`${title} ${row.label} ${columns[columnIndex]}`}
                         value={value}
                         onChange={(event) =>
                           onChange(rowIndex, columnIndex, event.target.value)
@@ -172,6 +174,7 @@ export function MeasurementTable({
                         data-table-id={tableId}
                         data-row-index={rowIndex}
                         data-column-index={columnIndex}
+                        aria-label={`${title} ${row.label} ${columns[columnIndex]}`}
                         type="text"
                         inputMode={
                           columnDefinitions?.[columnIndex]?.inputType === "text"

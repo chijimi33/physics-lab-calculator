@@ -5,6 +5,7 @@ import {
   convertPositionToMeters,
   estimateGravityByLinearRegression,
   estimateGravityFromPoints,
+  finiteDifference,
   hasStrictlyIncreasingTimes,
   normalizeMotionPoints,
 } from "./kinematics";
@@ -61,6 +62,14 @@ describe("kinematics", () => {
     ]);
 
     expect(calculateVelocityByFiniteDifference(points)).toEqual([null, null]);
+  });
+
+  it("keeps finite difference safe for missing or infinite values", () => {
+    expect(finiteDifference([0, Number.POSITIVE_INFINITY, 2], [0, 1, 2])).toEqual([
+      null,
+      1,
+      null,
+    ]);
   });
 
   it("detects non-increasing times", () => {

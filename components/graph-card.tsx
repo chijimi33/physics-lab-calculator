@@ -26,9 +26,20 @@ function pathFor(
   scaleX: (value: number) => number,
   scaleY: (value: number) => number,
 ) {
-  return points
+  return [...points]
+    .sort((a, b) => a.x - b.x)
     .map((point, index) => `${index === 0 ? "M" : "L"} ${scaleX(point.x)} ${scaleY(point.y)}`)
     .join(" ");
+}
+
+function paddedDomain(min: number, max: number): { min: number; max: number } {
+  if (min === max) {
+    const padding = Math.abs(min) > 0 ? Math.abs(min) * 0.1 : 1;
+    return { min: min - padding, max: max + padding };
+  }
+
+  const padding = (max - min) * 0.08;
+  return { min: min - padding, max: max + padding };
 }
 
 export function GraphCard({ definition, data }: GraphCardProps) {
@@ -42,10 +53,12 @@ export function GraphCard({ definition, data }: GraphCardProps) {
 
     const xValues = allPoints.map((point) => point.x);
     const yValues = allPoints.map((point) => point.y);
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const minY = Math.min(...yValues);
-    const maxY = Math.max(...yValues);
+    const xDomain = paddedDomain(Math.min(...xValues), Math.max(...xValues));
+    const yDomain = paddedDomain(Math.min(...yValues), Math.max(...yValues));
+    const minX = xDomain.min;
+    const maxX = xDomain.max;
+    const minY = yDomain.min;
+    const maxY = yDomain.max;
     const xSpan = maxX - minX || 1;
     const ySpan = maxY - minY || 1;
 
@@ -65,6 +78,9 @@ export function GraphCard({ definition, data }: GraphCardProps) {
       return;
     }
 
+    if (!svg.getAttribute("xmlns")) {
+      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
     const source = new XMLSerializer().serializeToString(svg);
     const image = new Image();
     const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
@@ -90,6 +106,9 @@ export function GraphCard({ definition, data }: GraphCardProps) {
       document.body.appendChild(link);
       link.click();
       link.remove();
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
     };
     image.src = url;
   };
@@ -120,8 +139,14 @@ export function GraphCard({ definition, data }: GraphCardProps) {
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           className="min-w-[520px] rounded border border-slate-200 bg-white"
           role="img"
-          aria-label={definition.title}
+          aria-label={`${definition.title}: ${definition.xLabel}${definition.xUnit ? ` ${definition.xUnit}` : ""} と ${definition.yLabel}${definition.yUnit ? ` ${definition.yUnit}` : ""} のグラフ`}
         >
+          <title>{definition.title}</title>
+          <desc>
+            {definition.xLabel}
+            {definition.xUnit ? ` [${definition.xUnit}]` : ""} と {definition.yLabel}
+            {definition.yUnit ? ` [${definition.yUnit}]` : ""} のグラフ
+          </desc>
           <line x1={PADDING} y1={HEIGHT - PADDING} x2={WIDTH - PADDING / 2} y2={HEIGHT - PADDING} stroke="#94a3b8" />
           <line x1={PADDING} y1={PADDING / 2} x2={PADDING} y2={HEIGHT - PADDING} stroke="#94a3b8" />
           <text x={WIDTH / 2} y={HEIGHT - 12} textAnchor="middle" fontSize="13" fill="#334155">
