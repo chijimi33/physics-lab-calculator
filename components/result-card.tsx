@@ -34,8 +34,9 @@ export function ResultCard({
         </p>
         <button
           type="button"
+          aria-label={`${label}をコピー`}
           onClick={() => navigator.clipboard?.writeText(textToCopy)}
-          className="border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
+          className="border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
         >
           コピー
         </button>

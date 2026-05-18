@@ -49,6 +49,9 @@ export function MeasurementTable({
   const renderedComputedColumns =
     computedColumns ?? (computedHeader ? [computedHeader] : []);
   const editableColumnCount = columnDefinitions?.length ?? columns.length;
+  const tableColumnCount =
+    columns.length + renderedComputedColumns.length + (onDeleteRow ? 2 : 1);
+  const tableMinWidth = Math.max(560, tableColumnCount * 132);
 
   const focusCell = (rowIndex: number, columnIndex: number) => {
     const selector = `[data-table-id="${tableId}"][data-row-index="${rowIndex}"][data-column-index="${columnIndex}"]`;
@@ -88,7 +91,7 @@ export function MeasurementTable({
 
   return (
     <section className="overflow-hidden border border-rule bg-white">
-      <div className="flex items-center justify-between gap-3 border-b border-rule bg-slate-50 px-3 py-2">
+      <div className="flex flex-col gap-2 border-b border-rule bg-slate-50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-ink">{title}</h2>
           {description ? (
@@ -98,12 +101,12 @@ export function MeasurementTable({
           ) : null}
         </div>
         {rowCountOptions && onRowCountChange ? (
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <label className="flex w-fit items-center gap-2 text-sm font-semibold text-slate-700">
             行数
             <select
               value={rows.length}
               onChange={(event) => onRowCountChange(Number(event.target.value))}
-              className="border border-rule bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              className="border border-rule bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
             >
               {rowCountOptions.map((count) => (
                 <option key={count} value={count}>
@@ -116,14 +119,17 @@ export function MeasurementTable({
           <button
             type="button"
             onClick={onAddRow}
-            className="border border-rule bg-slate-50 px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+            className="w-fit border border-rule bg-slate-50 px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
           >
             行を追加
           </button>
         ) : null}
       </div>
       <div className="max-h-[70vh] overflow-auto">
-        <table className="w-full min-w-[520px] border-collapse text-sm">
+        <table
+          className="w-full border-collapse text-sm"
+          style={{ minWidth: tableMinWidth }}
+        >
           <thead className="sticky top-0 z-20">
             <tr className="bg-slate-50 text-left text-slate-700">
               <th className="sticky left-0 z-30 w-24 border-b border-rule bg-slate-50 px-3 py-2">
@@ -170,7 +176,7 @@ export function MeasurementTable({
                             moveToNextCell(rowIndex, columnIndex);
                           }
                         }}
-                        className="w-full border border-rule bg-white px-2 py-1.5 text-[15px] outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+                        className="w-full min-w-28 border border-rule bg-white px-2 py-1.5 text-[15px] outline-none transition focus:border-accent focus:ring-1 focus:ring-accent focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
                       >
                         {columnDefinitions[columnIndex].options?.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -202,13 +208,14 @@ export function MeasurementTable({
                             moveToNextCell(rowIndex, columnIndex);
                           }
                         }}
-                        className="w-full border border-rule bg-white px-2 py-1.5 text-[15px] outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+                        className="w-full min-w-28 border border-rule bg-white px-2 py-1.5 text-[15px] outline-none transition placeholder:text-slate-400 focus:border-accent focus:ring-1 focus:ring-accent focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
                       />
                     )}
                     {row.warnings?.[columnIndex]?.map((warning) => (
                       <p
                         key={warning}
-                        className="mt-1 text-xs leading-5 text-slate-700"
+                        aria-live="polite"
+                        className="mt-1 text-xs leading-5 text-slate-600"
                       >
                         {warning}
                       </p>
@@ -228,7 +235,7 @@ export function MeasurementTable({
                     <button
                       type="button"
                       onClick={() => onDeleteRow(rowIndex)}
-                      className="border border-rule px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
+                      className="border border-rule px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
                     >
                       削除
                     </button>

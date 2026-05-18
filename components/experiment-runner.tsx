@@ -33,6 +33,8 @@ type CellWarnings = Record<string, string[][][]>;
 const DEFAULT_OUTPUT_SIGNIFICANT_DIGITS = 3;
 const MIN_OUTPUT_SIGNIFICANT_DIGITS = 2;
 const MAX_OUTPUT_SIGNIFICANT_DIGITS = 6;
+const DEFAULT_USAGE_CAUTION =
+  "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。";
 
 function clampOutputSignificantDigits(value: unknown): number {
   const numeric = typeof value === "number" ? value : Number(value);
@@ -402,11 +404,14 @@ function ExperimentWorkspace({
     () => buildInputWarnings(experiment, rawInput),
     [experiment, rawInput],
   );
-  const allWarnings = [
-    ...(experiment.warnings ?? []),
+  const reviewWarnings = [
     ...inputWarnings.globalWarnings,
     ...(calculation.warnings ?? []),
   ];
+  const cautionMessages =
+    experiment.warnings && experiment.warnings.length > 0
+      ? Array.from(new Set(experiment.warnings))
+      : [DEFAULT_USAGE_CAUTION];
   const intermediateSignificantDigits = outputSignificantDigits + 1;
   const formatIntermediateValue = createComputedValueFormatter(
     intermediateSignificantDigits,
@@ -495,7 +500,10 @@ function ExperimentWorkspace({
     <main className="min-h-screen px-3 py-5 sm:px-5 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-4">
         <header className="border border-rule bg-white px-4 py-3">
-          <Link href="/" className="text-sm font-semibold text-accent">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-accent focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+          >
             実験一覧へ戻る
           </Link>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -523,7 +531,7 @@ function ExperimentWorkspace({
                       clampOutputSignificantDigits(event.target.value),
                     )
                   }
-                  className="border border-rule bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                  className="border border-rule bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
                 >
                   {Array.from(
                     {
@@ -554,7 +562,7 @@ function ExperimentWorkspace({
                       }) ?? "",
                     )
                   }
-                  className="border border-accent bg-accent px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="border border-accent bg-accent px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
                 >
                   CSV出力
                 </button>
@@ -562,14 +570,14 @@ function ExperimentWorkspace({
               <button
                 type="button"
                 onClick={exportJson}
-                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
               >
                 JSON出力
               </button>
               <button
                 type="button"
                 onClick={() => importInputRef.current?.click()}
-                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
               >
                 JSON読込
               </button>
@@ -585,7 +593,7 @@ function ExperimentWorkspace({
               <button
                 type="button"
                 onClick={resetInput}
-                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
               >
                 入力をリセット
               </button>
@@ -679,17 +687,25 @@ function ExperimentWorkspace({
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-            <section className="border border-rule bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
-              このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。
+            <section
+              aria-label="利用上の注意"
+              className="border border-rule bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700"
+            >
+              {cautionMessages.map((message) => (
+                <p key={message}>{message}</p>
+              ))}
             </section>
 
-            {allWarnings.length > 0 ? (
-              <section className="border border-rule bg-white p-3">
+            {reviewWarnings.length > 0 ? (
+              <section
+                aria-live="polite"
+                className="border border-rule bg-white p-3"
+              >
                 <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink">
                   入力確認
                 </h2>
                 <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-700">
-                  {Array.from(new Set(allWarnings)).map((warning) => (
+                  {Array.from(new Set(reviewWarnings)).map((warning) => (
                     <li key={warning}>{warning}</li>
                   ))}
                 </ul>

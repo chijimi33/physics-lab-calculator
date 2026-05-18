@@ -131,9 +131,10 @@ export function GraphCard({ definition, data }: GraphCardProps) {
         </div>
         <button
           type="button"
+          aria-label={`${definition.title}をPNGで出力`}
           onClick={exportPng}
           disabled={allPoints.length === 0}
-          className="border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent disabled:opacity-40"
+          className="border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-40"
         >
           PNG出力
         </button>
@@ -144,7 +145,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           className="min-w-[520px] border border-rule bg-white"
           role="img"
-          aria-label={`${definition.title}: ${definition.xLabel}${definition.xUnit ? ` ${definition.xUnit}` : ""} と ${definition.yLabel}${definition.yUnit ? ` ${definition.yUnit}` : ""} のグラフ`}
+          aria-label={`${definition.title}: ${definition.xLabel}${definition.xUnit ? ` ${definition.xUnit}` : ""} と ${definition.yLabel}${definition.yUnit ? ` ${definition.yUnit}` : ""} のグラフ${definition.description ? `。${definition.description}` : ""}`}
         >
           <title>{definition.title}</title>
           <desc>

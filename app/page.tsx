@@ -25,7 +25,7 @@ export default function Home() {
             <Link
               key={experiment.id}
               href={`/experiments/${experiment.slug}`}
-              className="block border-b border-rule px-4 py-4 transition hover:bg-slate-50 last:border-b-0"
+              className="block border-b border-rule px-4 py-4 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent last:border-b-0"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>

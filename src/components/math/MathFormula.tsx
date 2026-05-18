@@ -57,7 +57,7 @@ export function MathFormula({
           <button
             type="button"
             onClick={copyFormula}
-            className="shrink-0 border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
+            className="shrink-0 border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent focus:outline-none focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
           >
             式をコピー
           </button>
