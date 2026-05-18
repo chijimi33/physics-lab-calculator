@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { calculateSimplePendulum } from "./simplePendulum";
+import { simplePendulumFixture } from "./__fixtures__/simplePendulum.fixture";
 
 describe("calculateSimplePendulum", () => {
+  it("matches the fixture length average", () => {
+    const result = calculateSimplePendulum(simplePendulumFixture.input);
+
+    expect(result.lengthAverage).toBeCloseTo(
+      simplePendulumFixture.expected.lengthAverage,
+      9,
+    );
+  });
+
   it("calculates pendulum length, amplitude regression, and gravity", () => {
     const result = calculateSimplePendulum({
       lengths: [

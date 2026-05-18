@@ -112,6 +112,13 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
   title: "金属棒の密度の測定",
   description:
     "直径、長さ、質量の測定値から金属棒の密度と誤差を求めます。",
+  status: "stable",
+  tags: ["密度", "誤差伝播", "有効数字"],
+  lastUpdated: "2026-05-18",
+  csvExportDefinition: { enabled: true, filenamePrefix: "density-metal-rod" },
+  warnings: [
+    "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。",
+  ],
   inputs: [
     {
       id: "diameters",

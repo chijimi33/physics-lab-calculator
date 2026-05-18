@@ -111,6 +111,13 @@ export const simplePendulumExperiment: ExperimentDefinition = {
   title: "単振り子",
   description:
     "振り子の長さ、周期、振幅依存性を測定し、重力加速度を求めます。",
+  status: "beta",
+  tags: ["力学", "単振動", "回帰"],
+  lastUpdated: "2026-05-18",
+  csvExportDefinition: { enabled: true, filenamePrefix: "simple-pendulum" },
+  warnings: [
+    "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。",
+  ],
   inputs: [
     {
       id: "lengths",
@@ -250,14 +257,53 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       description: "傾き T を1振動に要する時間として扱います。",
     },
   ],
+  graphDefinitions: [
+    {
+      id: "pendulum-phi-period",
+      title: "T-phi_0",
+      kind: "scatter",
+      xLabel: "phi_0",
+      yLabel: "T",
+      xUnit: "rad",
+      yUnit: units.second,
+      series: [{ key: "points", label: "測定点" }],
+    },
+    {
+      id: "pendulum-phi2-period",
+      title: "T-phi_0^2",
+      kind: "scatter",
+      xLabel: "phi_0^2",
+      yLabel: "T",
+      xUnit: "rad^2",
+      yUnit: units.second,
+      series: [
+        { key: "points", label: "測定点" },
+        { key: "regression", label: "回帰直線", kind: "regression" },
+      ],
+    },
+    {
+      id: "pendulum-n-time",
+      title: "t-n",
+      kind: "scatter",
+      xLabel: "n",
+      yLabel: "t",
+      yUnit: units.second,
+      series: [
+        { key: "points", label: "測定点" },
+        { key: "regression", label: "回帰直線", kind: "regression" },
+      ],
+    },
+  ],
   note:
-    "グラフ表示は未実装です。TODO: T-phi_0, T-phi_0^2, t-n の散布図と回帰直線を追加します。振幅は度で入力し、内部ではラジアンに変換します。計算内部では丸めず、表示時のみ有効数字に合わせます。",
+    "振幅は度で入力し、内部ではラジアンに変換します。計算内部では丸めず、表示時のみ有効数字に合わせます。",
   calculate(input: RawInputState) {
     const result = calculateSimplePendulum({
       lengths: input.lengths ?? [],
       amplitudes: input.amplitudes ?? [],
       gravity: input.gravity ?? [],
     });
+    const amplitudeZeroPeriod = result.amplitudeZeroPeriod;
+    const amplitudePeriodAtFiveDegrees = result.amplitudePeriodAtFiveDegrees;
 
     return {
       values: {
@@ -281,6 +327,55 @@ export const simplePendulumExperiment: ExperimentDefinition = {
           predictedTime: value,
           residual: result.gravityResiduals[index] ?? null,
         })),
+      },
+      graphs: {
+        "pendulum-phi-period": {
+          points: result.amplitudeRadians.flatMap((phi, index) =>
+            phi === null || result.amplitudePeriods[index] === null
+              ? []
+              : [{ x: phi, y: result.amplitudePeriods[index] }],
+          ),
+        },
+        "pendulum-phi2-period": {
+          points: result.amplitudeSquares.flatMap((phiSquared, index) =>
+            phiSquared === null || result.amplitudePeriods[index] === null
+              ? []
+              : [{ x: phiSquared, y: result.amplitudePeriods[index] }],
+          ),
+          regression:
+            amplitudeZeroPeriod === null ||
+            amplitudePeriodAtFiveDegrees === null
+              ? []
+              : result.amplitudeSquares.flatMap((phiSquared) => {
+                  if (phiSquared === null) {
+                    return [];
+                  }
+                  const fiveDegreesSquared = (5 * Math.PI / 180) ** 2;
+                  const slope =
+                    (amplitudePeriodAtFiveDegrees - amplitudeZeroPeriod) /
+                    fiveDegreesSquared;
+                  return [
+                    {
+                      x: phiSquared,
+                      y: slope * phiSquared + amplitudeZeroPeriod,
+                    },
+                  ];
+                }),
+        },
+        "pendulum-n-time": {
+          points: (input.gravity ?? []).flatMap((row) => {
+            const n = Number(row[0]);
+            const t = Number(row[1]);
+            return Number.isFinite(n) && Number.isFinite(t) ? [{ x: n, y: t }] : [];
+          }),
+          regression: (input.gravity ?? []).flatMap((row, index) => {
+            const n = Number(row[0]);
+            const predicted = result.gravityPredictedTimes[index];
+            return Number.isFinite(n) && predicted !== null
+              ? [{ x: n, y: predicted }]
+              : [];
+          }),
+        },
       },
       warnings: result.warnings,
     };

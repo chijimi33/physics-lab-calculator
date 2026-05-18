@@ -93,6 +93,13 @@ export const fallingMotionExperiment: ExperimentDefinition = {
   title: "落下の実験",
   description:
     "位置 x と時刻 t の測定値から速度、加速度、重力加速度を求めます。",
+  status: "beta",
+  tags: ["力学", "有限差分", "回帰"],
+  lastUpdated: "2026-05-18",
+  csvExportDefinition: { enabled: true, filenamePrefix: "falling-motion" },
+  warnings: [
+    "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。",
+  ],
   inputs: [
     {
       id: "freeFall",
@@ -240,8 +247,83 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       expression: "v_t = \\sqrt{\\frac{mg}{K}}",
     },
   ],
+  graphDefinitions: [
+    {
+      id: "freefall-t-x",
+      title: "自由落下 t-x",
+      kind: "scatter",
+      xLabel: "t",
+      yLabel: "x",
+      xUnit: units.second,
+      yUnit: units.meter,
+      series: [{ key: "points", label: "測定点" }],
+    },
+    {
+      id: "freefall-t-v",
+      title: "自由落下 t-v",
+      kind: "line",
+      xLabel: "t",
+      yLabel: "v",
+      xUnit: units.second,
+      yUnit: units.velocity,
+      series: [{ key: "points", label: "速度" }],
+    },
+    {
+      id: "freefall-t-a",
+      title: "自由落下 t-a",
+      kind: "line",
+      xLabel: "t",
+      yLabel: "a",
+      xUnit: units.second,
+      yUnit: units.acceleration,
+      series: [{ key: "points", label: "加速度" }],
+    },
+    {
+      id: "freefall-t2-x",
+      title: "自由落下 t^2-x",
+      kind: "scatter",
+      xLabel: "t^2",
+      yLabel: "x",
+      xUnit: "s^2",
+      yUnit: units.meter,
+      series: [
+        { key: "points", label: "測定点" },
+        { key: "regression", label: "回帰直線", kind: "regression" },
+      ],
+    },
+    {
+      id: "resisted-t-x",
+      title: "抵抗あり t-x",
+      kind: "scatter",
+      xLabel: "t",
+      yLabel: "x",
+      xUnit: units.second,
+      yUnit: units.meter,
+      series: [{ key: "points", label: "測定点" }],
+    },
+    {
+      id: "resisted-t-v",
+      title: "抵抗あり t-v",
+      kind: "line",
+      xLabel: "t",
+      yLabel: "v",
+      xUnit: units.second,
+      yUnit: units.velocity,
+      series: [{ key: "points", label: "速度" }],
+    },
+    {
+      id: "resisted-t-a",
+      title: "抵抗あり t-a",
+      kind: "line",
+      xLabel: "t",
+      yLabel: "a",
+      xUnit: units.second,
+      yUnit: units.acceleration,
+      series: [{ key: "points", label: "加速度" }],
+    },
+  ],
   note:
-    "計算内部では丸めず、表示時のみ有効数字に合わせて丸めています。位置は内部で m に変換して計算します。レポートへ転記する前に、実験書の指定単位、丸め規則、差分計算の扱いを確認してください。グラフ表示は未実装です。TODO: Recharts などを導入して t-x, t-v, t-a, t^2-x グラフを追加します。",
+    "計算内部では丸めず、表示時のみ有効数字に合わせて丸めています。位置は内部で m に変換して計算します。レポートへ転記する前に、実験書の指定単位、丸め規則、差分計算の扱いを確認してください。",
   calculate(input: RawInputState) {
     const result = calculateFallingMotion({
       freeFall: input.freeFall ?? [],
@@ -266,6 +348,56 @@ export const fallingMotionExperiment: ExperimentDefinition = {
           v: result.resistedVelocities[index] ?? null,
           a: result.resistedAccelerations[index] ?? null,
         })),
+      },
+      graphs: {
+        "freefall-t-x": {
+          points: result.freeFallPoints.flatMap((point) =>
+            point === null ? [] : [{ x: point.t, y: point.xMeters }],
+          ),
+        },
+        "freefall-t-v": {
+          points: result.freeFallPoints.flatMap((point, index) =>
+            point === null || result.freeFallVelocities[index] === null
+              ? []
+              : [{ x: point.t, y: result.freeFallVelocities[index] }],
+          ),
+        },
+        "freefall-t-a": {
+          points: result.freeFallPoints.flatMap((point, index) =>
+            point === null || result.freeFallAccelerations[index] === null
+              ? []
+              : [{ x: point.t, y: result.freeFallAccelerations[index] }],
+          ),
+        },
+        "freefall-t2-x": {
+          points: result.freeFallPoints.flatMap((point) =>
+            point === null ? [] : [{ x: point.t ** 2, y: point.xMeters }],
+          ),
+          regression: result.freeFallPoints.flatMap((point) =>
+            point === null || result.gravityRegression === null
+              ? []
+              : [{ x: point.t ** 2, y: (result.gravityRegression / 2) * point.t ** 2 }],
+          ),
+        },
+        "resisted-t-x": {
+          points: result.resistedPoints.flatMap((point) =>
+            point === null ? [] : [{ x: point.t, y: point.xMeters }],
+          ),
+        },
+        "resisted-t-v": {
+          points: result.resistedPoints.flatMap((point, index) =>
+            point === null || result.resistedVelocities[index] === null
+              ? []
+              : [{ x: point.t, y: result.resistedVelocities[index] }],
+          ),
+        },
+        "resisted-t-a": {
+          points: result.resistedPoints.flatMap((point, index) =>
+            point === null || result.resistedAccelerations[index] === null
+              ? []
+              : [{ x: point.t, y: result.resistedAccelerations[index] }],
+          ),
+        },
       },
       warnings: result.warnings,
     };

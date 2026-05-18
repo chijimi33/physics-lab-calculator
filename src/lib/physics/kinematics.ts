@@ -64,12 +64,19 @@ function differenceAt(values: number[], times: number[], index: number): number 
   return (values[endIndex] - values[startIndex]) / dt;
 }
 
+export function finiteDifference(
+  values: number[],
+  times: number[],
+): Array<number | null> {
+  return values.map((_value, index) => differenceAt(values, times, index));
+}
+
 export function calculateVelocityByFiniteDifference(
   points: MotionPoint[],
 ): Array<number | null> {
   const times = points.map((point) => point.t);
   const positions = points.map((point) => point.xMeters);
-  return points.map((_point, index) => differenceAt(positions, times, index));
+  return finiteDifference(positions, times);
 }
 
 export function calculateAccelerationByFiniteDifference(
@@ -80,9 +87,7 @@ export function calculateAccelerationByFiniteDifference(
     value === null ? Number.NaN : value,
   );
 
-  return velocities.map((_velocity, index) => {
-    return differenceAt(usableVelocity, times, index);
-  });
+  return finiteDifference(usableVelocity, times);
 }
 
 export function estimateGravityFromPoints(points: MotionPoint[]): GravityEstimate {

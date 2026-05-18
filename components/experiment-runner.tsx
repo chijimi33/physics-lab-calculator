@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { experiments } from "@/experiments";
+import { GraphCard } from "@/components/graph-card";
 import { MeasurementTable } from "@/components/measurement-table";
 import { ResultCard } from "@/components/result-card";
 import { MathFormula } from "@/src/components/math/MathFormula";
+import { FormulaCard } from "@/src/components/math/FormulaCard";
 import type {
   ComputedValue,
   ExperimentDefinition,
@@ -152,6 +154,48 @@ function formatResultValue(
   );
 }
 
+function updateCells(
+  experiment: ExperimentDefinition,
+  state: RawInputState,
+  tableId: string,
+  startRowIndex: number,
+  startColumnIndex: number,
+  values: string[][],
+): RawInputState {
+  const table = experiment.inputs.find((input) => input.id === tableId);
+  const columnCount = table?.columns.length ?? 0;
+  const currentRows = state[tableId] ?? [];
+  const neededRows = startRowIndex + values.length;
+  const rows =
+    table?.dynamicRows && neededRows > currentRows.length
+      ? [
+          ...currentRows,
+          ...Array.from({ length: neededRows - currentRows.length }, () =>
+            createEmptyRow(experiment, tableId),
+          ),
+        ].slice(0, table.maxRows ?? neededRows)
+      : currentRows;
+
+  return {
+    ...state,
+    [tableId]: rows.map((row, rowIndex) => {
+      const pastedRow = values[rowIndex - startRowIndex];
+      if (!pastedRow) {
+        return row;
+      }
+
+      return row.map((cell, columnIndex) => {
+        const pastedValue = pastedRow[columnIndex - startColumnIndex];
+        return columnIndex >= startColumnIndex &&
+          columnIndex < columnCount &&
+          pastedValue !== undefined
+          ? pastedValue
+          : cell;
+      });
+    }),
+  };
+}
+
 function formatComputedValue(
   value: ComputedValue | undefined,
   significantDigits: number,
@@ -256,6 +300,49 @@ function downloadCsv(filename: string, csv: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
+function downloadText(filename: string, text: string, type: string) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function parseImportedInput(
+  experiment: ExperimentDefinition,
+  value: unknown,
+): RawInputState | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const source = typeof record.input === "object" && record.input !== null
+    ? (record.input as Record<string, unknown>)
+    : record;
+  const nextInput: RawInputState = {};
+
+  for (const table of experiment.inputs) {
+    const rows = source[table.id];
+    if (
+      !Array.isArray(rows) ||
+      !rows.every(
+        (row) => Array.isArray(row) && row.every((cell) => typeof cell === "string"),
+      )
+    ) {
+      return null;
+    }
+    nextInput[table.id] = rows;
+  }
+
+  return nextInput;
+}
+
 export function ExperimentRunner({ slug }: ExperimentRunnerProps) {
   const experiment = experiments.find((item) => item.slug === slug);
 
@@ -284,6 +371,7 @@ function ExperimentWorkspace({
 }) {
   const { rawInput, setRawInput, resetInput } =
     usePersistedExperimentInput(experiment);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
   const outputDigitsStorageKey = useMemo(
     () => `physics-lab:${experiment.id}:output-significant-digits`,
     [experiment.id],
@@ -304,6 +392,7 @@ function ExperimentWorkspace({
     [experiment, rawInput],
   );
   const allWarnings = [
+    ...(experiment.warnings ?? []),
     ...inputWarnings.globalWarnings,
     ...(calculation.warnings ?? []),
   ];
@@ -321,6 +410,44 @@ function ExperimentWorkspace({
       calculation.values,
       outputSignificantDigits,
     );
+
+  const exportJson = () => {
+    downloadText(
+      `${experiment.slug}.json`,
+      JSON.stringify(
+        {
+          experimentId: experiment.id,
+          exportedAt: new Date().toISOString(),
+          input: rawInput,
+          values: calculation.values,
+        },
+        null,
+        2,
+      ),
+      "application/json;charset=utf-8",
+    );
+  };
+
+  const importJson = async (file: File | undefined) => {
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+      const imported = parseImportedInput(experiment, parsed);
+      if (imported !== null) {
+        setRawInput(imported);
+      }
+    } catch {
+      // 壊れたJSONは読み込まず、現在の入力を保持する。
+    } finally {
+      if (importInputRef.current) {
+        importInputRef.current.value = "";
+      }
+    }
+  };
 
   useEffect(() => {
     setLoadedOutputDigitsKey(null);
@@ -417,6 +544,29 @@ function ExperimentWorkspace({
               ) : null}
               <button
                 type="button"
+                onClick={exportJson}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+              >
+                JSON出力
+              </button>
+              <button
+                type="button"
+                onClick={() => importInputRef.current?.click()}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+              >
+                JSON読込
+              </button>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept="application/json,.json"
+                onChange={(event) => {
+                  void importJson(event.target.files?.[0]);
+                }}
+                className="hidden"
+              />
+              <button
+                type="button"
                 onClick={resetInput}
                 className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-400 hover:text-red-600"
               >
@@ -431,6 +581,7 @@ function ExperimentWorkspace({
             {experiment.inputs.map((table) => (
               <MeasurementTable
                 key={table.id}
+                tableId={table.id}
                 title={table.title}
                 columnDefinitions={table.columns}
                 columns={table.columns.map((column) =>
@@ -454,6 +605,18 @@ function ExperimentWorkspace({
                 onChange={(rowIndex, columnIndex, value) =>
                   setRawInput((current) =>
                     updateCell(current, table.id, rowIndex, columnIndex, value),
+                  )
+                }
+                onPasteCells={(rowIndex, columnIndex, values) =>
+                  setRawInput((current) =>
+                    updateCells(
+                      experiment,
+                      current,
+                      table.id,
+                      rowIndex,
+                      columnIndex,
+                      values,
+                    ),
                   )
                 }
                 onAddRow={
@@ -498,6 +661,10 @@ function ExperimentWorkspace({
           </div>
 
           <aside className="space-y-5">
+            <section className="rounded border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950">
+              このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。
+            </section>
+
             {allWarnings.length > 0 ? (
               <section className="rounded border border-amber-300 bg-amber-50 p-4">
                 <h2 className="text-lg font-bold text-amber-900">入力確認</h2>
@@ -536,31 +703,32 @@ function ExperimentWorkspace({
               </div>
             </section>
 
+            {experiment.graphDefinitions && experiment.graphDefinitions.length > 0 ? (
+              <section className="rounded border border-rule bg-white p-4">
+                <h2 className="text-lg font-bold text-ink">グラフ</h2>
+                <div className="mt-4 space-y-4">
+                  {experiment.graphDefinitions.map((graph) => (
+                    <GraphCard
+                      key={graph.id}
+                      definition={graph}
+                      data={calculation.graphs?.[graph.id]}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <section className="rounded border border-rule bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
               <h2 className="text-lg font-bold text-ink dark:text-slate-50">
                 使用した式
               </h2>
               <div className="mt-4 space-y-3">
                 {experiment.formulas.map((formula, index) => (
-                  <article
+                  <FormulaCard
                     key={`${formula.label}-${formula.expression}`}
-                    className="rounded border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800"
-                  >
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
-                        {index + 1}
-                      </span>
-                      <h3 className="text-sm font-bold text-ink dark:text-slate-50">
-                        {formula.label}
-                      </h3>
-                    </div>
-                    <MathFormula formula={formula.expression} />
-                    {formula.description ? (
-                      <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
-                        {formula.description}
-                      </p>
-                    ) : null}
-                  </article>
+                    formula={formula}
+                    index={index}
+                  />
                 ))}
               </div>
             </section>

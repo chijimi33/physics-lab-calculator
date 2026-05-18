@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { calculateFallingMotion } from "./fallingMotion";
+import { fallingMotionFixture } from "./__fixtures__/fallingMotion.fixture";
 
 describe("calculateFallingMotion", () => {
+  it("matches the fixture gravity estimate", () => {
+    const result = calculateFallingMotion(fallingMotionFixture.input);
+
+    expect(result.gravityAverage).toBeCloseTo(
+      fallingMotionFixture.expected.gravityAverage,
+      9,
+    );
+  });
+
   it("keeps calculated rows aligned when a blank row exists", () => {
     const result = calculateFallingMotion({
       freeFall: [

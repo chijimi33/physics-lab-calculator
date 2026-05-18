@@ -1,8 +1,10 @@
 "use client";
 
+import type { ClipboardEvent } from "react";
 import type { InputColumnDefinition } from "@/src/experiments";
 
 type MeasurementTableProps = {
+  tableId: string;
   title: string;
   columns: string[];
   columnDefinitions?: InputColumnDefinition[];
@@ -16,6 +18,11 @@ type MeasurementTableProps = {
   computedHeader?: string;
   computedColumns?: string[];
   onChange: (rowIndex: number, columnIndex: number, value: string) => void;
+  onPasteCells?: (
+    startRowIndex: number,
+    startColumnIndex: number,
+    values: string[][],
+  ) => void;
   onAddRow?: () => void;
   onDeleteRow?: (rowIndex: number) => void;
   rowCountOptions?: number[];
@@ -23,6 +30,7 @@ type MeasurementTableProps = {
 };
 
 export function MeasurementTable({
+  tableId,
   title,
   columns,
   columnDefinitions,
@@ -30,6 +38,7 @@ export function MeasurementTable({
   computedHeader,
   computedColumns,
   onChange,
+  onPasteCells,
   onAddRow,
   onDeleteRow,
   rowCountOptions,
@@ -37,6 +46,42 @@ export function MeasurementTable({
 }: MeasurementTableProps) {
   const renderedComputedColumns =
     computedColumns ?? (computedHeader ? [computedHeader] : []);
+
+  const focusCell = (rowIndex: number, columnIndex: number) => {
+    const selector = `[data-table-id="${tableId}"][data-row-index="${rowIndex}"][data-column-index="${columnIndex}"]`;
+    const element = document.querySelector<HTMLInputElement | HTMLSelectElement>(selector);
+    element?.focus();
+    if (element instanceof HTMLInputElement) {
+      element.select();
+    }
+  };
+
+  const moveToNextCell = (rowIndex: number, columnIndex: number) => {
+    const nextColumn = columnIndex + 1;
+    if (nextColumn < columns.length) {
+      focusCell(rowIndex, nextColumn);
+      return;
+    }
+    focusCell(rowIndex + 1, 0);
+  };
+
+  const handlePaste = (
+    event: ClipboardEvent<HTMLInputElement>,
+    rowIndex: number,
+    columnIndex: number,
+  ) => {
+    const text = event.clipboardData.getData("text");
+    if (!text.includes("\t") && !text.includes("\n")) {
+      return;
+    }
+
+    event.preventDefault();
+    const values = text
+      .trimEnd()
+      .split(/\r?\n/)
+      .map((line) => line.split("\t"));
+    onPasteCells?.(rowIndex, columnIndex, values);
+  };
 
   return (
     <section className="overflow-hidden rounded border border-rule bg-white">
@@ -67,40 +112,53 @@ export function MeasurementTable({
           </button>
         ) : null}
       </div>
-      <div className="overflow-x-auto">
+      <div className="max-h-[70vh] overflow-auto">
         <table className="w-full min-w-[520px] border-collapse text-sm">
-          <thead>
+          <thead className="sticky top-0 z-20">
             <tr className="bg-stone-50 text-left text-slate-700">
-              <th className="w-24 border-b border-rule px-3 py-2">No.</th>
+              <th className="sticky left-0 z-30 w-24 border-b border-rule bg-stone-50 px-3 py-2">
+                No.
+              </th>
               {columns.map((column) => (
-                <th key={column} className="border-b border-rule px-3 py-2">
+                <th key={column} className="border-b border-rule bg-stone-50 px-3 py-2">
                   {column}
                 </th>
               ))}
               {renderedComputedColumns.map((column) => (
-                <th key={column} className="border-b border-rule px-3 py-2">
+                <th key={column} className="border-b border-rule bg-stone-50 px-3 py-2">
                   {column}
                 </th>
               ))}
               {onDeleteRow ? (
-                <th className="w-20 border-b border-rule px-3 py-2">操作</th>
+                <th className="w-20 border-b border-rule bg-stone-50 px-3 py-2">
+                  操作
+                </th>
               ) : null}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => (
               <tr key={row.label} className="odd:bg-white even:bg-stone-50">
-                <th className="border-b border-rule px-3 py-2 text-left font-semibold">
+                <th className="sticky left-0 z-10 border-b border-rule bg-inherit px-3 py-2 text-left font-semibold">
                   {row.label}
                 </th>
                 {row.values.map((value, columnIndex) => (
                   <td key={columnIndex} className="border-b border-rule px-3 py-2">
                     {columnDefinitions?.[columnIndex]?.inputType === "select" ? (
                       <select
+                        data-table-id={tableId}
+                        data-row-index={rowIndex}
+                        data-column-index={columnIndex}
                         value={value}
                         onChange={(event) =>
                           onChange(rowIndex, columnIndex, event.target.value)
                         }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            moveToNextCell(rowIndex, columnIndex);
+                          }
+                        }}
                         className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-blue-100"
                       >
                         {columnDefinitions[columnIndex].options?.map((option) => (
@@ -111,6 +169,9 @@ export function MeasurementTable({
                       </select>
                     ) : (
                       <input
+                        data-table-id={tableId}
+                        data-row-index={rowIndex}
+                        data-column-index={columnIndex}
                         type="text"
                         inputMode={
                           columnDefinitions?.[columnIndex]?.inputType === "text"
@@ -121,6 +182,13 @@ export function MeasurementTable({
                         onChange={(event) =>
                           onChange(rowIndex, columnIndex, event.target.value)
                         }
+                        onPaste={(event) => handlePaste(event, rowIndex, columnIndex)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            moveToNextCell(rowIndex, columnIndex);
+                          }
+                        }}
                         className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-blue-100"
                       />
                     )}

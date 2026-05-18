@@ -2,6 +2,12 @@ import Link from "next/link";
 import { experiments } from "@/experiments";
 
 export default function Home() {
+  const statusLabels = {
+    stable: "安定",
+    beta: "確認中",
+    todo: "未実装",
+  };
+
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-5xl">
@@ -40,6 +46,27 @@ export default function Home() {
               <p className="mt-4 text-sm leading-6 text-slate-700">
                 {experiment.description}
               </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                <span className="rounded border border-rule bg-white px-2 py-1 text-slate-700">
+                  {statusLabels[experiment.status ?? "stable"]}
+                </span>
+                <span className="rounded border border-rule bg-white px-2 py-1 text-slate-700">
+                  グラフ {experiment.graphDefinitions?.length ? "対応" : "未対応"}
+                </span>
+                {experiment.lastUpdated ? (
+                  <span className="rounded border border-rule bg-white px-2 py-1 text-slate-700">
+                    更新 {experiment.lastUpdated}
+                  </span>
+                ) : null}
+                {experiment.tags?.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-blue-700"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </Link>
           ))}
         </section>

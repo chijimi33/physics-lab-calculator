@@ -6,9 +6,17 @@ export type ComputedValue = number | string | null;
 
 export type ComputedTableCells = Record<string, Array<Record<string, ComputedValue>>>;
 
+export type GraphPoint = {
+  x: number;
+  y: number;
+};
+
+export type GraphSeriesData = Record<string, GraphPoint[]>;
+
 export type CalculationResult = {
   values: Record<string, number | null>;
   computedTables?: ComputedTableCells;
+  graphs?: Record<string, GraphSeriesData>;
   warnings?: string[];
 };
 
@@ -57,6 +65,28 @@ export type FormulaDefinition = {
   description?: string;
 };
 
+export type ExperimentStatus = "stable" | "beta" | "todo";
+
+export type GraphDefinition = {
+  id: string;
+  title: string;
+  kind: "scatter" | "line" | "regression" | "residual";
+  xLabel: string;
+  yLabel: string;
+  xUnit?: string;
+  yUnit?: string;
+  series: Array<{
+    key: string;
+    label: string;
+    kind?: "scatter" | "line" | "regression" | "residual";
+  }>;
+};
+
+export type CsvExportDefinition = {
+  filenamePrefix?: string;
+  enabled: boolean;
+};
+
 export type CsvExportContext = {
   input: RawInputState;
   calculation: CalculationResult;
@@ -70,9 +100,17 @@ export type ExperimentDefinition = {
   slug: string;
   title: string;
   description: string;
+  status?: ExperimentStatus;
+  tags?: string[];
+  lastUpdated?: string;
   inputs: InputDefinition[];
+  inputSections?: InputDefinition[];
   results: ResultDefinition[];
+  resultDefinitions?: ResultDefinition[];
   formulas: FormulaDefinition[];
+  graphDefinitions?: GraphDefinition[];
+  csvExportDefinition?: CsvExportDefinition;
+  warnings?: string[];
   note?: string;
   calculate: (input: RawInputState) => CalculationResult;
   exportCsv?: (context: CsvExportContext) => string;
