@@ -85,16 +85,16 @@ export function MeasurementTable({
   };
 
   return (
-    <section className="overflow-hidden rounded border border-rule bg-white">
-      <div className="flex items-center justify-between gap-3 border-b border-rule bg-stone-100 px-4 py-3">
-        <h2 className="text-lg font-bold text-ink">{title}</h2>
+    <section className="overflow-hidden border border-rule bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-rule bg-gray-100 px-3 py-2">
+        <h2 className="text-base font-bold text-ink">{title}</h2>
         {rowCountOptions && onRowCountChange ? (
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             行数
             <select
               value={rows.length}
               onChange={(event) => onRowCountChange(Number(event.target.value))}
-              className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-blue-100"
+              className="border border-rule bg-white px-2 py-1.5 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             >
               {rowCountOptions.map((count) => (
                 <option key={count} value={count}>
@@ -107,7 +107,7 @@ export function MeasurementTable({
           <button
             type="button"
             onClick={onAddRow}
-            className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+            className="border border-rule bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
           >
             行を追加
           </button>
@@ -116,22 +116,22 @@ export function MeasurementTable({
       <div className="max-h-[70vh] overflow-auto">
         <table className="w-full min-w-[520px] border-collapse text-sm">
           <thead className="sticky top-0 z-20">
-            <tr className="bg-stone-50 text-left text-slate-700">
-              <th className="sticky left-0 z-30 w-24 border-b border-rule bg-stone-50 px-3 py-2">
+            <tr className="bg-gray-100 text-left text-slate-700">
+              <th className="sticky left-0 z-30 w-24 border-b border-rule bg-gray-100 px-3 py-2">
                 No.
               </th>
               {columns.map((column) => (
-                <th key={column} className="border-b border-rule bg-stone-50 px-3 py-2">
+                <th key={column} className="border-b border-rule bg-gray-100 px-3 py-2">
                   {column}
                 </th>
               ))}
               {renderedComputedColumns.map((column) => (
-                <th key={column} className="border-b border-rule bg-stone-50 px-3 py-2">
+                <th key={column} className="border-b border-rule bg-gray-100 px-3 py-2">
                   {column}
                 </th>
               ))}
               {onDeleteRow ? (
-                <th className="w-20 border-b border-rule bg-stone-50 px-3 py-2">
+                <th className="w-20 border-b border-rule bg-gray-100 px-3 py-2">
                   操作
                 </th>
               ) : null}
@@ -139,7 +139,7 @@ export function MeasurementTable({
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => (
-              <tr key={row.label} className="odd:bg-white even:bg-stone-50">
+              <tr key={row.label} className="odd:bg-white even:bg-gray-50">
                 <th className="sticky left-0 z-10 border-b border-rule bg-inherit px-3 py-2 text-left font-semibold">
                   {row.label}
                 </th>
@@ -161,7 +161,7 @@ export function MeasurementTable({
                             moveToNextCell(rowIndex, columnIndex);
                           }
                         }}
-                        className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-blue-100"
+                        className="w-full border border-rule bg-white px-2 py-1.5 text-base outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
                       >
                         {columnDefinitions[columnIndex].options?.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -192,13 +192,13 @@ export function MeasurementTable({
                             moveToNextCell(rowIndex, columnIndex);
                           }
                         }}
-                        className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-blue-100"
+                        className="w-full border border-rule bg-white px-2 py-1.5 text-base outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
                       />
                     )}
                     {row.warnings?.[columnIndex]?.map((warning) => (
                       <p
                         key={warning}
-                        className="mt-1 text-xs leading-5 text-amber-700"
+                        className="mt-1 text-xs leading-5 text-slate-700"
                       >
                         {warning}
                       </p>
@@ -218,7 +218,7 @@ export function MeasurementTable({
                     <button
                       type="button"
                       onClick={() => onDeleteRow(rowIndex)}
-                      className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-red-400 hover:text-red-600"
+                      className="border border-rule px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
                     >
                       削除
                     </button>

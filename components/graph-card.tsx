@@ -11,7 +11,7 @@ type GraphCardProps = {
 const WIDTH = 640;
 const HEIGHT = 360;
 const PADDING = 48;
-const COLORS = ["#2563eb", "#dc2626", "#16a34a", "#9333ea"];
+const COLORS = ["#1f4e79", "#4b5563", "#111827", "#9ca3af"];
 
 function finitePoints(data: GraphSeriesData | undefined, keys: string[]) {
   return keys.flatMap((key) =>
@@ -114,7 +114,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
   };
 
   return (
-    <section className="rounded border border-rule bg-white p-4">
+    <section className="border border-rule bg-white p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-ink">{definition.title}</h3>
@@ -128,7 +128,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
           type="button"
           onClick={exportPng}
           disabled={allPoints.length === 0}
-          className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent disabled:opacity-40"
+          className="border border-rule bg-white px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent disabled:opacity-40"
         >
           PNG出力
         </button>
@@ -137,7 +137,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
         <svg
           ref={svgRef}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          className="min-w-[520px] rounded border border-slate-200 bg-white"
+          className="min-w-[520px] border border-rule bg-white"
           role="img"
           aria-label={`${definition.title}: ${definition.xLabel}${definition.xUnit ? ` ${definition.xUnit}` : ""} と ${definition.yLabel}${definition.yUnit ? ` ${definition.yUnit}` : ""} のグラフ`}
         >
@@ -196,7 +196,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
         {definition.series.map((series, index) => (
           <span key={series.key} className="inline-flex items-center gap-1">
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-2.5 w-2.5 border border-rule"
               style={{ backgroundColor: COLORS[index % COLORS.length] }}
             />
             {series.label}

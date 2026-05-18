@@ -18,21 +18,21 @@ export function ResultCard({
   const textToCopy = copyText ?? `${label}: ${value}`;
 
   return (
-    <div className="rounded border border-rule bg-white p-4">
+    <div className="border-b border-rule bg-white px-3 py-3 last:border-b-0">
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-semibold text-slate-600">{label}</p>
         <button
           type="button"
           onClick={() => navigator.clipboard?.writeText(textToCopy)}
-          className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
+          className="border border-rule px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
         >
           コピー
         </button>
       </div>
-      <p className="mt-2 break-words font-mono text-xl font-bold text-ink">
+      <p className="mt-1 break-words font-mono text-lg font-bold text-ink">
         {value}
       </p>
-      {formula ? <div className="mt-3">{formula}</div> : null}
+      {formula ? <div className="mt-2">{formula}</div> : null}
       {detail ? <p className="mt-2 text-sm text-slate-600">{detail}</p> : null}
     </div>
   );

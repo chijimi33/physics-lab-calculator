@@ -22,7 +22,7 @@ export function MathFormula({
   const fallback = (error: Error) => (
     <code
       aria-label={ariaLabel ?? plainText ?? formula}
-      className="rounded bg-red-50 px-1 py-0.5 text-red-700"
+      className="border border-rule bg-gray-50 px-1 py-0.5 text-slate-700"
     >
       {plainText ?? formula}
       {error.message ? ` (${error.message})` : ""}
@@ -47,7 +47,7 @@ export function MathFormula({
   return (
     <div
       aria-label={ariaLabel ?? plainText ?? formula}
-      className={`math-formula-block rounded border border-slate-200 bg-white px-3 py-3 text-slate-950 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 ${className}`}
+      className={`math-formula-block border border-rule bg-white px-3 py-2 text-slate-950 ${className}`}
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1 overflow-x-auto">
@@ -57,7 +57,7 @@ export function MathFormula({
           <button
             type="button"
             onClick={copyFormula}
-            className="shrink-0 rounded border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+            className="shrink-0 border border-rule bg-white px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
           >
             式をコピー
           </button>

@@ -358,8 +358,8 @@ export function ExperimentRunner({ slug }: ExperimentRunnerProps) {
 
   if (!experiment) {
     return (
-      <main className="min-h-screen px-4 py-5 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl rounded border border-rule bg-paper p-6 shadow-report">
+      <main className="min-h-screen px-3 py-4 sm:px-5 lg:px-8">
+        <div className="mx-auto max-w-3xl border border-rule bg-white p-4">
           <Link href="/" className="text-sm font-semibold text-accent">
             実験一覧へ戻る
           </Link>
@@ -491,23 +491,23 @@ function ExperimentWorkspace({
   ]);
 
   return (
-    <main className="min-h-screen px-3 py-4 sm:px-6 sm:py-5 lg:px-10">
-      <div className="mx-auto max-w-6xl space-y-5">
-        <header className="rounded border border-rule bg-paper p-4 shadow-report sm:p-6">
+    <main className="min-h-screen px-3 py-4 sm:px-5 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-4">
+        <header className="border border-rule bg-white p-4">
           <Link href="/" className="text-sm font-semibold text-accent">
             実験一覧へ戻る
           </Link>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-semibold tracking-[0.18em] text-slate-600">
+              <p className="text-sm font-semibold text-slate-600">
                 第{experiment.number}回実験
               </p>
-              <h1 className="mt-2 break-words text-2xl font-bold leading-tight text-ink sm:text-3xl">
+              <h1 className="mt-1 break-words text-2xl font-bold leading-tight text-ink sm:text-3xl">
                 {experiment.title}
               </h1>
             </div>
             <div className="flex flex-wrap gap-2">
-              <label className="flex items-center gap-2 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+              <label className="flex items-center gap-2 border border-rule bg-gray-50 px-3 py-2 text-sm font-semibold text-slate-700">
                 表示有効数字
                 <select
                   value={outputSignificantDigits}
@@ -516,7 +516,7 @@ function ExperimentWorkspace({
                       clampOutputSignificantDigits(event.target.value),
                     )
                   }
-                  className="rounded border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-blue-100"
+                  className="border border-rule bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                 >
                   {Array.from(
                     {
@@ -547,7 +547,7 @@ function ExperimentWorkspace({
                       }) ?? "",
                     )
                   }
-                  className="rounded border border-accent bg-accent px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  className="border border-accent bg-accent px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   CSV出力
                 </button>
@@ -555,14 +555,14 @@ function ExperimentWorkspace({
               <button
                 type="button"
                 onClick={exportJson}
-                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
               >
                 JSON出力
               </button>
               <button
                 type="button"
                 onClick={() => importInputRef.current?.click()}
-                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
               >
                 JSON読込
               </button>
@@ -578,7 +578,7 @@ function ExperimentWorkspace({
               <button
                 type="button"
                 onClick={resetInput}
-                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-400 hover:text-red-600"
+                className="border border-rule bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
               >
                 入力をリセット
               </button>
@@ -586,8 +586,8 @@ function ExperimentWorkspace({
           </div>
         </header>
 
-        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-5">
+        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="space-y-4">
             {experiment.inputs.map((table) => (
               <MeasurementTable
                 key={table.id}
@@ -670,15 +670,15 @@ function ExperimentWorkspace({
             ))}
           </div>
 
-          <aside className="space-y-5">
-            <section className="rounded border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-950">
+          <aside className="space-y-4">
+            <section className="border border-rule bg-white p-3 text-sm leading-6 text-slate-700">
               このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。
             </section>
 
             {allWarnings.length > 0 ? (
-              <section className="rounded border border-amber-300 bg-amber-50 p-4">
-                <h2 className="text-lg font-bold text-amber-900">入力確認</h2>
-                <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-900">
+              <section className="border border-rule bg-gray-50 p-3">
+                <h2 className="text-base font-bold text-ink">入力確認</h2>
+                <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-700">
                   {Array.from(new Set(allWarnings)).map((warning) => (
                     <li key={warning}>{warning}</li>
                   ))}
@@ -686,13 +686,15 @@ function ExperimentWorkspace({
               </section>
             ) : null}
 
-            <section className="rounded border border-rule bg-stone-50 p-4">
-              <h2 className="text-lg font-bold text-ink">計算結果</h2>
+            <section className="border border-rule bg-white p-3">
+              <h2 className="border-b border-rule pb-2 text-base font-bold text-ink">
+                計算結果
+              </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 計算内部では丸めず、表示時のみ有効数字と誤差桁に合わせて丸めています。
                 表の中間値は表示有効数字より1桁多く表示します。レポートへ転記する前に、実験書の指定単位と丸め規則を確認してください。
               </p>
-              <div className="mt-4 grid gap-3">
+              <div className="mt-3 grid gap-0 border-t border-rule">
                 {experiment.results.map((result) => {
                   const value = formatValue(result.key);
                   return (
@@ -714,9 +716,11 @@ function ExperimentWorkspace({
             </section>
 
             {experiment.graphDefinitions && experiment.graphDefinitions.length > 0 ? (
-              <section className="rounded border border-rule bg-white p-4">
-                <h2 className="text-lg font-bold text-ink">グラフ</h2>
-                <div className="mt-4 space-y-4">
+              <section className="border border-rule bg-white p-3">
+                <h2 className="border-b border-rule pb-2 text-base font-bold text-ink">
+                  グラフ
+                </h2>
+                <div className="mt-3 space-y-3">
                   {experiment.graphDefinitions.map((graph) => (
                     <GraphCard
                       key={graph.id}
@@ -728,11 +732,11 @@ function ExperimentWorkspace({
               </section>
             ) : null}
 
-            <section className="rounded border border-rule bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-lg font-bold text-ink dark:text-slate-50">
+            <section className="border border-rule bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+              <h2 className="border-b border-rule pb-2 text-base font-bold text-ink dark:text-slate-50">
                 使用した式
               </h2>
-              <div className="mt-4 space-y-3">
+              <div className="mt-3 space-y-2">
                 {experiment.formulas.map((formula, index) => (
                   <FormulaCard
                     key={`${formula.label}-${formula.expression}`}
@@ -744,8 +748,8 @@ function ExperimentWorkspace({
             </section>
 
             {experiment.note ? (
-              <section className="rounded border border-rule bg-white p-4">
-                <h2 className="text-lg font-bold text-ink">拡張メモ</h2>
+              <section className="border border-rule bg-white p-3">
+                <h2 className="text-base font-bold text-ink">拡張メモ</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-700">
                   {experiment.note}
                 </p>
