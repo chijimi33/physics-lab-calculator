@@ -117,7 +117,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
     <section className="border border-rule bg-white p-3">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-ink">{definition.title}</h3>
+          <h3 className="text-base font-semibold text-ink">{definition.title}</h3>
           <p className="mt-1 text-xs text-slate-600">
             {definition.xLabel}
             {definition.xUnit ? ` [${definition.xUnit}]` : ""} / {definition.yLabel}
@@ -128,7 +128,7 @@ export function GraphCard({ definition, data }: GraphCardProps) {
           type="button"
           onClick={exportPng}
           disabled={allPoints.length === 0}
-          className="border border-rule bg-white px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent disabled:opacity-40"
+          className="border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent disabled:opacity-40"
         >
           PNG出力
         </button>

@@ -24,12 +24,12 @@ export function ResultCard({
         <button
           type="button"
           onClick={() => navigator.clipboard?.writeText(textToCopy)}
-          className="border border-rule px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
+          className="border border-rule bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-accent hover:text-accent"
         >
           コピー
         </button>
       </div>
-      <p className="mt-1 break-words font-mono text-lg font-bold text-ink">
+      <p className="mt-1 break-words font-mono text-lg font-semibold text-ink">
         {value}
       </p>
       {formula ? <div className="mt-2">{formula}</div> : null}

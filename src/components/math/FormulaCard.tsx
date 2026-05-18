@@ -10,12 +10,12 @@ type FormulaCardProps = {
 
 export function FormulaCard({ formula, index }: FormulaCardProps) {
   return (
-    <article className="border border-rule bg-gray-50 p-3">
+    <article className="border border-rule bg-slate-50 p-3">
       <div className="mb-2 flex items-baseline gap-2">
         <span className="text-xs font-semibold text-slate-500">
           {index + 1}.
         </span>
-        <h3 className="text-sm font-bold text-ink">
+        <h3 className="text-sm font-semibold text-ink">
           {formula.label}
         </h3>
       </div>

@@ -4,7 +4,7 @@
 
 :root {
   color-scheme: light;
-  background: #f3f4f6;
+  background: #f6f7f8;
 }
 
 * {
@@ -13,9 +13,11 @@
 
 body {
   margin: 0;
-  color: #1f2937;
-  background: #f3f4f6;
+  color: #111827;
+  background: #f6f7f8;
   font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 input[type="number"] {

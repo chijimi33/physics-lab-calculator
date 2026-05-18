@@ -491,23 +491,23 @@ function ExperimentWorkspace({
   ]);
 
   return (
-    <main className="min-h-screen px-3 py-4 sm:px-5 lg:px-8">
+    <main className="min-h-screen px-3 py-5 sm:px-5 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-4">
-        <header className="border border-rule bg-white p-4">
+        <header className="border border-rule bg-white px-4 py-3">
           <Link href="/" className="text-sm font-semibold text-accent">
             実験一覧へ戻る
           </Link>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-600">
                 第{experiment.number}回実験
               </p>
-              <h1 className="mt-1 break-words text-2xl font-bold leading-tight text-ink sm:text-3xl">
+              <h1 className="mt-1 break-words text-2xl font-semibold leading-tight text-ink sm:text-3xl">
                 {experiment.title}
               </h1>
             </div>
             <div className="flex flex-wrap gap-2">
-              <label className="flex items-center gap-2 border border-rule bg-gray-50 px-3 py-2 text-sm font-semibold text-slate-700">
+              <label className="flex items-center gap-2 border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
                 表示有効数字
                 <select
                   value={outputSignificantDigits}
@@ -555,14 +555,14 @@ function ExperimentWorkspace({
               <button
                 type="button"
                 onClick={exportJson}
-                className="border border-rule bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
               >
                 JSON出力
               </button>
               <button
                 type="button"
                 onClick={() => importInputRef.current?.click()}
-                className="border border-rule bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
               >
                 JSON読込
               </button>
@@ -578,7 +578,7 @@ function ExperimentWorkspace({
               <button
                 type="button"
                 onClick={resetInput}
-                className="border border-rule bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
+                className="border border-rule bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent hover:text-accent"
               >
                 入力をリセット
               </button>
@@ -671,13 +671,15 @@ function ExperimentWorkspace({
           </div>
 
           <aside className="space-y-4">
-            <section className="border border-rule bg-white p-3 text-sm leading-6 text-slate-700">
+            <section className="border border-rule bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
               このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。
             </section>
 
             {allWarnings.length > 0 ? (
-              <section className="border border-rule bg-gray-50 p-3">
-                <h2 className="text-base font-bold text-ink">入力確認</h2>
+              <section className="border border-rule bg-white p-3">
+                <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink">
+                  入力確認
+                </h2>
                 <ul className="mt-2 space-y-1 text-sm leading-6 text-slate-700">
                   {Array.from(new Set(allWarnings)).map((warning) => (
                     <li key={warning}>{warning}</li>
@@ -687,7 +689,7 @@ function ExperimentWorkspace({
             ) : null}
 
             <section className="border border-rule bg-white p-3">
-              <h2 className="border-b border-rule pb-2 text-base font-bold text-ink">
+              <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink">
                 計算結果
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -717,7 +719,7 @@ function ExperimentWorkspace({
 
             {experiment.graphDefinitions && experiment.graphDefinitions.length > 0 ? (
               <section className="border border-rule bg-white p-3">
-                <h2 className="border-b border-rule pb-2 text-base font-bold text-ink">
+                <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink">
                   グラフ
                 </h2>
                 <div className="mt-3 space-y-3">
@@ -733,7 +735,7 @@ function ExperimentWorkspace({
             ) : null}
 
             <section className="border border-rule bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="border-b border-rule pb-2 text-base font-bold text-ink dark:text-slate-50">
+              <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink dark:text-slate-50">
                 使用した式
               </h2>
               <div className="mt-3 space-y-2">
@@ -749,7 +751,7 @@ function ExperimentWorkspace({
 
             {experiment.note ? (
               <section className="border border-rule bg-white p-3">
-                <h2 className="text-base font-bold text-ink">拡張メモ</h2>
+                <h2 className="text-base font-semibold text-ink">拡張メモ</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-700">
                   {experiment.note}
                 </p>
