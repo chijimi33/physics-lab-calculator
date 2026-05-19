@@ -47,6 +47,19 @@ describe("calculateFallingMotion", () => {
     );
   });
 
+  it("accepts millimeter position input as SI-aware length data", () => {
+    const result = calculateFallingMotion({
+      freeFall: [
+        ["0", "0", "mm"],
+        ["1", "4900", "mm"],
+      ],
+      resisted: [],
+    });
+
+    expect(result.freeFallPoints[1]?.xMeters).toBeCloseTo(4.9);
+    expect(result.freeFallGravityValues[1]).toBeCloseTo(9.8);
+  });
+
   it("does not calculate finite differences or regression when times are duplicated", () => {
     const result = calculateFallingMotion({
       freeFall: [

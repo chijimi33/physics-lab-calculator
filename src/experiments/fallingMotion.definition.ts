@@ -133,6 +133,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
           options: [
             { label: "m", value: "m" },
             { label: "cm", value: "cm" },
+            { label: "mm", value: "mm" },
           ],
         },
       ],
@@ -173,6 +174,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
           options: [
             { label: "m", value: "m" },
             { label: "cm", value: "cm" },
+            { label: "mm", value: "mm" },
           ],
         },
         {

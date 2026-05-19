@@ -13,6 +13,7 @@ import {
 describe("kinematics", () => {
   it("converts cm to m", () => {
     expect(convertPositionToMeters(100, "cm")).toBe(1);
+    expect(convertPositionToMeters(1000, "mm")).toBe(1);
     expect(convertPositionToMeters(1, "m")).toBe(1);
   });
 

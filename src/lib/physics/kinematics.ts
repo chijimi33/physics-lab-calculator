@@ -1,6 +1,7 @@
 import { average, standardErrorOfMean } from "./statistics";
+import { toMeters, type LengthUnit } from "./units";
 
-export type PositionUnit = "m" | "cm";
+export type PositionUnit = LengthUnit;
 
 export type MotionPointInput = {
   t: number;
@@ -30,7 +31,7 @@ export type RegressionGravityEstimate = {
 };
 
 export function convertPositionToMeters(value: number, unit: PositionUnit): number {
-  return unit === "cm" ? value / 100 : value;
+  return toMeters(value, unit);
 }
 
 export function normalizeMotionPoints(points: MotionPointInput[]): MotionPoint[] {

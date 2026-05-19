@@ -9,6 +9,7 @@ import {
   type MotionPoint,
   type PositionUnit,
 } from "../lib/physics/kinematics";
+import { isLengthUnit } from "../lib/physics/units";
 
 export type FallingMotionRawInput = {
   freeFall: string[][];
@@ -39,7 +40,7 @@ type ParsedRows = {
 };
 
 function parseUnit(value: string): PositionUnit | null {
-  if (value === "cm" || value === "m") {
+  if (isLengthUnit(value)) {
     return value;
   }
 
@@ -85,7 +86,7 @@ function parsePointRows(rows: string[][], hasNote: boolean): ParsedRows {
   }
 
   if (rows.some((row) => row[2] !== "" && parseUnit(row[2] ?? "m") === null)) {
-    warnings.push("位置単位が m または cm ではない行があります。");
+    warnings.push("位置単位が m, cm, mm のいずれでもない行があります。");
   }
 
   return { rowPoints, compactPoints, compactIndexes, warnings };
