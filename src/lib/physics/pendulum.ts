@@ -1,7 +1,9 @@
+import { degToRad } from "./units";
+
 export const STANDARD_GRAVITY = 9.80665;
 
 export function degreesToRadians(degrees: number): number {
-  return (degrees * Math.PI) / 180;
+  return degToRad(degrees);
 }
 
 export function calculatePendulumLengthMeters(
