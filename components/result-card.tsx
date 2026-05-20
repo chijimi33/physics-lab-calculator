@@ -7,6 +7,10 @@ type ResultCardProps = {
   detail?: string;
   formula?: ReactNode;
   copyText?: string;
+  rawValue?: string;
+  workingValue?: string;
+  hiddenDigits?: string;
+  roundingReason?: string;
 };
 
 export function ResultCard({
@@ -16,6 +20,10 @@ export function ResultCard({
   detail,
   formula,
   copyText,
+  rawValue,
+  workingValue,
+  hiddenDigits,
+  roundingReason,
 }: ResultCardProps) {
   const textToCopy = copyText ?? `${label}: ${value}`;
   const isPrimary = priority === "primary";
@@ -48,6 +56,34 @@ export function ResultCard({
       >
         {value}
       </p>
+      {rawValue || workingValue || hiddenDigits || roundingReason ? (
+        <dl className="mt-2 grid gap-1 text-xs leading-5 text-slate-600">
+          {workingValue ? (
+            <div className="flex flex-wrap gap-x-2">
+              <dt className="font-semibold">中間保持値:</dt>
+              <dd className="font-mono">{workingValue}</dd>
+            </div>
+          ) : null}
+          {rawValue ? (
+            <div className="flex flex-wrap gap-x-2">
+              <dt className="font-semibold">rawValue:</dt>
+              <dd className="font-mono">{rawValue}</dd>
+            </div>
+          ) : null}
+          {hiddenDigits ? (
+            <div className="flex flex-wrap gap-x-2">
+              <dt className="font-semibold">非表示桁:</dt>
+              <dd className="font-mono">{hiddenDigits}</dd>
+            </div>
+          ) : null}
+          {roundingReason ? (
+            <div className="flex flex-wrap gap-x-2">
+              <dt className="font-semibold">丸め理由:</dt>
+              <dd>{roundingReason}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
       {formula ? <div className="mt-2">{formula}</div> : null}
       {detail ? <p className="mt-2 text-sm text-slate-600">{detail}</p> : null}
     </div>

@@ -22,6 +22,13 @@ import {
   formatToSignificantFigures,
   roundByError,
 } from "@/src/lib/physics/significantFigures";
+import {
+  createCalculatedValue,
+  DEFAULT_PRECISION_SETTINGS,
+  type CalculatedValue,
+  type PrecisionMode,
+  type PrecisionSettings,
+} from "@/src/lib/physics/precision";
 import { withUnit } from "@/src/lib/physics/units";
 
 type ExperimentRunnerProps = {
@@ -33,6 +40,8 @@ type CellWarnings = Record<string, string[][][]>;
 const DEFAULT_OUTPUT_SIGNIFICANT_DIGITS = 3;
 const MIN_OUTPUT_SIGNIFICANT_DIGITS = 2;
 const MAX_OUTPUT_SIGNIFICANT_DIGITS = 6;
+const MIN_GUARD_DIGITS = 0;
+const MAX_GUARD_DIGITS = 3;
 const DEFAULT_USAGE_CAUTION =
   "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。";
 
@@ -47,6 +56,47 @@ function clampOutputSignificantDigits(value: unknown): number {
     Math.max(numeric, MIN_OUTPUT_SIGNIFICANT_DIGITS),
     MAX_OUTPUT_SIGNIFICANT_DIGITS,
   );
+}
+
+function clampGuardDigits(value: unknown): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isInteger(numeric)) {
+    return DEFAULT_PRECISION_SETTINGS.guardDigits;
+  }
+
+  return Math.min(Math.max(numeric, MIN_GUARD_DIGITS), MAX_GUARD_DIGITS);
+}
+
+function parsePrecisionSettings(value: string | null): PrecisionSettings {
+  if (value === null) {
+    return DEFAULT_PRECISION_SETTINGS;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Partial<PrecisionSettings>;
+    const precisionMode: PrecisionMode =
+      parsed.precisionMode === "full" ? "full" : "guarded";
+
+    return {
+      precisionMode,
+      guardDigits: clampGuardDigits(parsed.guardDigits),
+      showRawValue:
+        typeof parsed.showRawValue === "boolean"
+          ? parsed.showRawValue
+          : DEFAULT_PRECISION_SETTINGS.showRawValue,
+      showWorkingValue:
+        typeof parsed.showWorkingValue === "boolean"
+          ? parsed.showWorkingValue
+          : DEFAULT_PRECISION_SETTINGS.showWorkingValue,
+      showHiddenDigits:
+        typeof parsed.showHiddenDigits === "boolean"
+          ? parsed.showHiddenDigits
+          : DEFAULT_PRECISION_SETTINGS.showHiddenDigits,
+    };
+  } catch {
+    return DEFAULT_PRECISION_SETTINGS;
+  }
 }
 
 function updateCell(
@@ -316,6 +366,33 @@ function downloadText(filename: string, text: string, type: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
+function createResultCalculatedValue(
+  experiment: ExperimentDefinition,
+  key: string,
+  values: Record<string, number | null>,
+  displayValue: string,
+  significantDigits: number,
+  precisionSettings: PrecisionSettings,
+): CalculatedValue | null {
+  const resultDefinition = experiment.results.find((result) => result.key === key);
+  const rawValue = values[key] ?? null;
+
+  if (rawValue === null || !Number.isFinite(rawValue)) {
+    return null;
+  }
+
+  const valueForPrecision =
+    resultDefinition?.kind === "percent" ? rawValue * 100 : rawValue;
+
+  return createCalculatedValue({
+    rawValue: valueForPrecision,
+    significantDigits,
+    guardDigits: precisionSettings.guardDigits,
+    precisionMode: precisionSettings.precisionMode,
+    displayValue,
+  });
+}
+
 function experimentFileStem(experiment: ExperimentDefinition): string {
   return `physics-lab-${experiment.experimentNumber}`;
 }
@@ -395,10 +472,20 @@ function ExperimentWorkspace({
     () => `physics-lab:${experiment.id}:output-significant-digits`,
     [experiment.id],
   );
+  const precisionSettingsStorageKey = useMemo(
+    () => `physics-lab:${experiment.id}:precision-settings`,
+    [experiment.id],
+  );
   const [outputSignificantDigits, setOutputSignificantDigits] = useState(
     DEFAULT_OUTPUT_SIGNIFICANT_DIGITS,
   );
+  const [precisionSettings, setPrecisionSettings] = useState<PrecisionSettings>(
+    DEFAULT_PRECISION_SETTINGS,
+  );
   const [loadedOutputDigitsKey, setLoadedOutputDigitsKey] = useState<
+    string | null
+  >(null);
+  const [loadedPrecisionSettingsKey, setLoadedPrecisionSettingsKey] = useState<
     string | null
   >(null);
 
@@ -503,6 +590,37 @@ function ExperimentWorkspace({
     loadedOutputDigitsKey,
     outputDigitsStorageKey,
     outputSignificantDigits,
+  ]);
+
+  useEffect(() => {
+    setLoadedPrecisionSettingsKey(null);
+    try {
+      const stored = window.localStorage.getItem(precisionSettingsStorageKey);
+      setPrecisionSettings(parsePrecisionSettings(stored));
+    } catch {
+      setPrecisionSettings(DEFAULT_PRECISION_SETTINGS);
+    } finally {
+      setLoadedPrecisionSettingsKey(precisionSettingsStorageKey);
+    }
+  }, [precisionSettingsStorageKey]);
+
+  useEffect(() => {
+    if (loadedPrecisionSettingsKey !== precisionSettingsStorageKey) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        precisionSettingsStorageKey,
+        JSON.stringify(precisionSettings),
+      );
+    } catch {
+      // 保存に失敗しても、計算と表示は続ける。
+    }
+  }, [
+    loadedPrecisionSettingsKey,
+    precisionSettings,
+    precisionSettingsStorageKey,
   ]);
 
   return (
@@ -723,6 +841,127 @@ function ExperimentWorkspace({
 
             <section className="border border-rule bg-white p-3">
               <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink">
+                計算精度設定
+              </h2>
+              <div className="mt-3 space-y-3 text-sm text-slate-700">
+                <fieldset className="space-y-2">
+                  <legend className="font-semibold text-slate-700">
+                    計算精度モード
+                  </legend>
+                  <label className="flex items-start gap-2">
+                    <input
+                      type="radio"
+                      name="precision-mode"
+                      value="guarded"
+                      checked={precisionSettings.precisionMode === "guarded"}
+                      onChange={() =>
+                        setPrecisionSettings((current) => ({
+                          ...current,
+                          precisionMode: "guarded",
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                    <span>
+                      標準モード
+                      <span className="block text-xs leading-5 text-slate-600">
+                        rawValueを保持し、中間保持値はguard digit込みで表示します。
+                      </span>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2">
+                    <input
+                      type="radio"
+                      name="precision-mode"
+                      value="full"
+                      checked={precisionSettings.precisionMode === "full"}
+                      onChange={() =>
+                        setPrecisionSettings((current) => ({
+                          ...current,
+                          precisionMode: "full",
+                        }))
+                      }
+                      className="mt-1"
+                    />
+                    <span>
+                      完全精度モード
+                      <span className="block text-xs leading-5 text-slate-600">
+                        最終表示までrawValueをそのまま扱います。
+                      </span>
+                    </span>
+                  </label>
+                </fieldset>
+
+                <label className="flex items-center justify-between gap-3 border-t border-rule pt-3">
+                  <span className="font-semibold">guard digit</span>
+                  <select
+                    value={precisionSettings.guardDigits}
+                    onChange={(event) =>
+                      setPrecisionSettings((current) => ({
+                        ...current,
+                        guardDigits: clampGuardDigits(event.target.value),
+                      }))
+                    }
+                    disabled={precisionSettings.precisionMode === "full"}
+                    className="border border-rule bg-white px-2 py-1 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent disabled:bg-slate-100 disabled:text-slate-500"
+                  >
+                    {Array.from(
+                      { length: MAX_GUARD_DIGITS - MIN_GUARD_DIGITS + 1 },
+                      (_unused, index) => MIN_GUARD_DIGITS + index,
+                    ).map((digits) => (
+                      <option key={digits} value={digits}>
+                        {digits}桁
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="grid gap-2 border-t border-rule pt-3">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={precisionSettings.showRawValue}
+                      onChange={(event) =>
+                        setPrecisionSettings((current) => ({
+                          ...current,
+                          showRawValue: event.target.checked,
+                        }))
+                      }
+                    />
+                    rawValueを表示
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={precisionSettings.showWorkingValue}
+                      onChange={(event) =>
+                        setPrecisionSettings((current) => ({
+                          ...current,
+                          showWorkingValue: event.target.checked,
+                        }))
+                      }
+                    />
+                    中間保持値を表示
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={precisionSettings.showHiddenDigits}
+                      onChange={(event) =>
+                        setPrecisionSettings((current) => ({
+                          ...current,
+                          showHiddenDigits: event.target.checked,
+                        }))
+                      }
+                    />
+                    非表示桁を表示
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <section className="border border-rule bg-white p-3">
+              <h2 className="border-b border-rule pb-2 text-base font-semibold text-ink">
                 計算結果
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -732,6 +971,18 @@ function ExperimentWorkspace({
               <div className="mt-3 grid gap-0 border-t border-rule">
                 {experiment.results.map((result) => {
                   const value = formatValue(result.key);
+                  const calculatedValue = createResultCalculatedValue(
+                    experiment,
+                    result.key,
+                    calculation.values,
+                    value,
+                    outputSignificantDigits,
+                    precisionSettings,
+                  );
+                  const workingDigits =
+                    outputSignificantDigits + precisionSettings.guardDigits;
+                  const precisionUnit =
+                    result.kind === "percent" ? "%" : result.unit;
                   return (
                     <ResultCard
                       key={result.key}
@@ -739,6 +990,31 @@ function ExperimentWorkspace({
                       value={value}
                       priority={result.priority}
                       copyText={`${result.label},${value}`}
+                      rawValue={
+                        precisionSettings.showRawValue && calculatedValue
+                          ? withUnit(String(calculatedValue.rawValue), precisionUnit)
+                          : undefined
+                      }
+                      workingValue={
+                        precisionSettings.showWorkingValue && calculatedValue
+                          ? withUnit(
+                              precisionSettings.precisionMode === "full"
+                                ? String(calculatedValue.workingValue)
+                                : formatToSignificantFigures(
+                                    calculatedValue.workingValue,
+                                    workingDigits,
+                                  ),
+                              precisionUnit,
+                            )
+                          : undefined
+                      }
+                      hiddenDigits={
+                        precisionSettings.showHiddenDigits &&
+                        calculatedValue?.hiddenDigits !== undefined
+                          ? String(calculatedValue.hiddenDigits)
+                          : undefined
+                      }
+                      roundingReason={calculatedValue?.roundingReason}
                       formula={
                         result.formula ? (
                           <MathFormula inline formula={result.formula} />

@@ -1,17 +1,15 @@
 import { metalRodDensityExperiment } from "./metalRodDensity.definition";
 import { fallingMotionExperiment } from "./fallingMotion.definition";
 import { simplePendulumExperiment } from "./simplePendulum.definition";
+import { formatExperimentNumber } from "./numbering";
 import type { ExperimentDefinition } from "./types";
-
-function createExperimentNumber(experiment: ExperimentDefinition): string {
-  return `${experiment.seriesNumber}-${experiment.experimentIndex}`;
-}
 
 function normalizeExperimentDefinition(
   experiment: ExperimentDefinition,
 ): ExperimentDefinition {
   const experimentNumber =
-    experiment.experimentNumber || createExperimentNumber(experiment);
+    experiment.experimentNumber ||
+    formatExperimentNumber(experiment.seriesNumber, experiment.experimentIndex);
 
   return {
     status: "stable",
