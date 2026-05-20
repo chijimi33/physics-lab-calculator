@@ -14,7 +14,7 @@ export type GraphPoint = {
 export type GraphSeriesData = Record<string, GraphPoint[]>;
 
 export type CalculationResult = {
-  values: Record<string, number | null>;
+  values: Record<string, ComputedValue>;
   computedTables?: ComputedTableCells;
   graphs?: Record<string, GraphSeriesData>;
   warnings?: string[];
@@ -55,7 +55,7 @@ export type ResultDefinition = {
   key: string;
   label: string;
   priority?: "primary" | "normal";
-  kind?: "number" | "percent" | "valueWithError";
+  kind?: "number" | "percent" | "valueWithError" | "text";
   errorKey?: string;
   unit?: string;
   formula?: string;

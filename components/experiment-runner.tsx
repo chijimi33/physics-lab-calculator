@@ -184,11 +184,15 @@ function resizeRows(
 function formatResultValue(
   experiment: ExperimentDefinition,
   key: string,
-  values: Record<string, number | null>,
+  values: Record<string, ComputedValue>,
   significantDigits: number,
 ): string {
   const resultDefinition = experiment.results.find((result) => result.key === key);
   const value = values[key] ?? null;
+
+  if (typeof value === "string") {
+    return value;
+  }
 
   if (resultDefinition?.kind === "percent") {
     return value === null
@@ -197,9 +201,12 @@ function formatResultValue(
   }
 
   if (resultDefinition?.kind === "valueWithError") {
+    const errorValue = resultDefinition.errorKey
+      ? values[resultDefinition.errorKey] ?? null
+      : null;
     const formatted = roundByError(
       value,
-      resultDefinition.errorKey ? values[resultDefinition.errorKey] ?? null : null,
+      typeof errorValue === "number" ? errorValue : null,
       significantDigits,
       significantDigits,
     ).combined;
@@ -375,7 +382,7 @@ function downloadText(filename: string, text: string, type: string) {
 function createResultCalculatedValue(
   experiment: ExperimentDefinition,
   key: string,
-  values: Record<string, number | null>,
+  values: Record<string, ComputedValue>,
   displayValue: string,
   significantDigits: number,
   precisionSettings: PrecisionSettings,
@@ -384,7 +391,7 @@ function createResultCalculatedValue(
   const resultDefinition = experiment.results.find((result) => result.key === key);
   const rawValue = values[key] ?? null;
 
-  if (rawValue === null || !Number.isFinite(rawValue)) {
+  if (typeof rawValue !== "number" || !Number.isFinite(rawValue)) {
     return null;
   }
 

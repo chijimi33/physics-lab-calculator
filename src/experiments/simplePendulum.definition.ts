@@ -53,7 +53,7 @@ function exportSimplePendulumCsv({
   rows.push(
     "",
     csvRow(["Amplitude dependence"]),
-    csvRow(["No.", "phi_0 [deg]", "time for 10 oscillations [s]", "phi_0 [rad]", "phi_0^2 [rad^2]", "T [s]"]),
+    csvRow(["No.", "phi_0 [deg]", "time for 10 oscillations [s]", "phi_0 [rad]", "phi_0^2 [rad^2]", "T [s]", "mean T at same phi_0 [s]"]),
   );
 
   (input.amplitudes ?? []).forEach((row, index) => {
@@ -65,6 +65,7 @@ function exportSimplePendulumCsv({
         formatComputedValue(valueFromComputed(calculation, "amplitudes", index, "phiRad")),
         formatComputedValue(valueFromComputed(calculation, "amplitudes", index, "phiSquared")),
         formatComputedValue(valueFromComputed(calculation, "amplitudes", index, "period")),
+        formatComputedValue(valueFromComputed(calculation, "amplitudes", index, "meanPeriod")),
       ]),
     );
   });
@@ -93,12 +94,24 @@ function exportSimplePendulumCsv({
     csvRow(["Label", "Value"]),
     csvRow(["l average", formatValue("lengthAverage")]),
     csvRow(["l standard error", formatValue("lengthStandardError")]),
+    csvRow(["T-phi^2 slope a", formatValue("amplitudeRegressionSlope")]),
+    csvRow(["T-phi^2 intercept T0", formatValue("amplitudeRegressionIntercept")]),
+    csvRow(["T-phi^2 R^2", formatValue("amplitudeRegressionRSquared")]),
     csvRow(["T at phi_0 = 0", formatValue("amplitudeZeroPeriod")]),
     csvRow(["T at phi_0 = 5 deg", formatValue("amplitudePeriodAtFiveDegrees")]),
     csvRow(["increase at 5 deg", formatValue("amplitudeIncreaseAtFiveDegrees")]),
     csvRow(["T from t-n regression", formatValue("gravityPeriod")]),
+    csvRow(["t-n intercept", formatValue("gravityIntercept")]),
+    csvRow(["t-n R^2", formatValue("gravityRSquared")]),
     csvRow(["g", formatValue("gravity")]),
+    csvRow(["g - standard gravity", formatValue("gravityDifference")]),
     csvRow(["relative error vs standard gravity", formatValue("gravityRelativeError")]),
+    "",
+    csvRow(["Report experiment 1"]),
+    csvRow([formatValue("reportExperiment1")]),
+    "",
+    csvRow(["Report experiment 2"]),
+    csvRow([formatValue("reportExperiment2")]),
   );
 
   return rows.join("\n");
@@ -126,7 +139,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "lengths",
       title: "1. 振り子の長さ",
-      description: "つり環から球の最下端までの長さ L と球の直径 D を入力します。l = L - D/2 は m に変換して表示します。",
+      description: "つり環上端から金属球最下端までの長さ L と金属球の直径 D を入力します。l = L - D/2 を cm から m に変換して計算します。",
       rowCount: 5,
       rowLabel: "測定",
       required: true,
@@ -152,7 +165,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "amplitudes",
       title: "2. 実験1: 周期の振幅依存性",
-      description: "振幅 phi_0 と10回分の時間を入力します。周期 T と phi_0^2 は自動計算されます。",
+      description: "長さを一定にし、振幅 phi_0 を 0〜30 deg 程度で変えて10回振動時間 t10 を入力します。phi_0 は内部で rad に変換します。",
       rowCount: 13,
       minRows: 2,
       maxRows: 13,
@@ -181,12 +194,13 @@ export const simplePendulumExperiment: ExperimentDefinition = {
         { key: "phiRad", label: "phi_0 [rad]" },
         { key: "phiSquared", label: "phi_0^2 [rad^2]" },
         { key: "period", label: "T [s]" },
+        { key: "meanPeriod", label: "平均 T [s]" },
       ],
     },
     {
       id: "gravity",
       title: "3. 実験2: 重力加速度の測定",
-      description: "振動回数 n と経過時間 t を入力します。t-n 回帰の傾きから周期 T を求めます。",
+      description: "振幅を5 deg以内にして、10回ごとに200回程度までの振動回数 n と経過時間 t を入力します。t-n 回帰の傾きから周期 T を求めます。",
       rowCount: 20,
       minRows: 2,
       maxRows: 20,
@@ -238,6 +252,24 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       detail: "T-phi_0^2 回帰の切片",
     },
     {
+      key: "amplitudeRegressionSlope",
+      label: "T-phi_0^2 回帰の傾き a",
+      unit: "s/rad^2",
+      formula: "T = a\\phi_0^2 + T_0",
+      detail: "横軸は degree ではなく rad^2 を使用",
+    },
+    {
+      key: "amplitudeRegressionIntercept",
+      label: "T-phi_0^2 回帰の切片 T0",
+      unit: units.second,
+      formula: "T_0 = b",
+      detail: "phi_0 = 0 に外挿した周期",
+    },
+    {
+      key: "amplitudeRegressionRSquared",
+      label: "T-phi_0^2 回帰の R^2",
+    },
+    {
       key: "amplitudePeriodAtFiveDegrees",
       label: "phi_0 = 5 deg の周期",
       unit: units.second,
@@ -255,6 +287,15 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       detail: "t-n グラフの回帰直線の傾き",
     },
     {
+      key: "gravityIntercept",
+      label: "t-n 回帰の切片 b",
+      unit: units.second,
+    },
+    {
+      key: "gravityRSquared",
+      label: "t-n 回帰の R^2",
+    },
+    {
       key: "gravity",
       label: "重力加速度 g",
       priority: "primary",
@@ -263,10 +304,28 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       detail: "l の平均値と t-n 回帰から求めた周期 T から計算",
     },
     {
+      key: "gravityDifference",
+      label: "標準重力との差 g - g0",
+      unit: units.acceleration,
+      detail: `標準重力 ${STANDARD_GRAVITY} m/s^2 との差`,
+    },
+    {
       key: "gravityRelativeError",
-      label: "標準重力との差",
+      label: "標準重力との相対誤差",
       kind: "percent",
       detail: `標準重力 ${STANDARD_GRAVITY} m/s^2 との相対差`,
+    },
+    {
+      key: "reportExperiment1",
+      label: "レポート用まとめ: 実験1",
+      kind: "text",
+      detail: "コピーしてレポートの下書きとして使えます。数値の丸めは提出前に確認してください。",
+    },
+    {
+      key: "reportExperiment2",
+      label: "レポート用まとめ: 実験2",
+      kind: "text",
+      detail: "コピーしてレポートの下書きとして使えます。誤差要因は自分の測定状況に合わせて修正してください。",
     },
   ],
   formulas: [
@@ -297,6 +356,16 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       description: "振幅が大きくない範囲での近似式です。",
     },
     {
+      label: "T-phi_0^2 回帰",
+      expression: "T = a\\varphi_0^2 + T_0",
+      description: "横軸には rad に変換した振幅の二乗を使います。",
+    },
+    {
+      label: "5度での周期増加率",
+      expression: "\\frac{T(5^\\circ) - T_0}{T_0}\\times 100",
+      description: "小角近似による等時性の確認に使います。",
+    },
+    {
       label: "重力加速度",
       expression: "g = \\frac{4\\pi^2l}{T^2}",
     },
@@ -310,7 +379,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "pendulum-phi-period",
       title: "T-phi_0",
-      description: "振幅の大きさと周期の関係を確認します。",
+      description: "振幅は rad に変換してプロットしています。degree のままではありません。",
       kind: "scatter",
       xLabel: "phi_0",
       yLabel: "T",
@@ -321,7 +390,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "pendulum-phi2-period",
       title: "T-phi_0^2",
-      description: "測定点と T = a phi_0^2 + b の回帰直線を重ねています。切片 b は phi_0 = 0 の周期です。",
+      description: "測定点と T = a phi_0^2 + T0 の回帰直線を重ねています。切片 T0 は phi_0 = 0 の周期です。",
       kind: "scatter",
       xLabel: "phi_0^2",
       yLabel: "T",
@@ -335,7 +404,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       id: "pendulum-n-time",
       title: "t-n",
-      description: "測定点と t = Tn + b の回帰直線を重ねています。傾き T を周期として使います。",
+      description: "測定点と t = Tn + b の回帰直線を重ねています。傾き T を周期として使い、g を求めます。",
       kind: "scatter",
       xLabel: "n",
       yLabel: "t",
@@ -354,19 +423,27 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       amplitudes: input.amplitudes ?? [],
       gravity: input.gravity ?? [],
     });
-    const amplitudeZeroPeriod = result.amplitudeZeroPeriod;
-    const amplitudePeriodAtFiveDegrees = result.amplitudePeriodAtFiveDegrees;
+    const amplitudeSlope = result.amplitudeRegressionSlope;
+    const amplitudeIntercept = result.amplitudeRegressionIntercept;
 
     return {
       values: {
         lengthAverage: result.lengthAverage,
         lengthStandardError: result.lengthStandardError,
+        amplitudeRegressionSlope: result.amplitudeRegressionSlope,
+        amplitudeRegressionIntercept: result.amplitudeRegressionIntercept,
+        amplitudeRegressionRSquared: result.amplitudeRegressionRSquared,
         amplitudeZeroPeriod: result.amplitudeZeroPeriod,
         amplitudePeriodAtFiveDegrees: result.amplitudePeriodAtFiveDegrees,
         amplitudeIncreaseAtFiveDegrees: result.amplitudeIncreaseAtFiveDegrees,
         gravityPeriod: result.gravityPeriod,
+        gravityIntercept: result.gravityIntercept,
+        gravityRSquared: result.gravityRSquared,
         gravity: result.gravity,
+        gravityDifference: result.gravityDifference,
         gravityRelativeError: result.gravityRelativeError,
+        reportExperiment1: result.reportExperiment1,
+        reportExperiment2: result.reportExperiment2,
       },
       computedTables: {
         lengths: result.lengthValues.map((value) => ({ l: value })),
@@ -374,6 +451,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
           phiRad: result.amplitudeRadians[index] ?? null,
           phiSquared: result.amplitudeSquares[index] ?? null,
           period: value,
+          meanPeriod: result.amplitudeMeanPeriods[index] ?? null,
         })),
         gravity: result.gravityPredictedTimes.map((value, index) => ({
           predictedTime: value,
@@ -395,21 +473,17 @@ export const simplePendulumExperiment: ExperimentDefinition = {
               : [{ x: phiSquared, y: result.amplitudePeriods[index] }],
           ),
           regression:
-            amplitudeZeroPeriod === null ||
-            amplitudePeriodAtFiveDegrees === null
+            amplitudeSlope === null ||
+            amplitudeIntercept === null
               ? []
               : result.amplitudeSquares.flatMap((phiSquared) => {
                   if (phiSquared === null) {
                     return [];
                   }
-                  const fiveDegreesSquared = (5 * Math.PI / 180) ** 2;
-                  const slope =
-                    (amplitudePeriodAtFiveDegrees - amplitudeZeroPeriod) /
-                    fiveDegreesSquared;
                   return [
                     {
                       x: phiSquared,
-                      y: slope * phiSquared + amplitudeZeroPeriod,
+                      y: amplitudeSlope * phiSquared + amplitudeIntercept,
                     },
                   ];
                 }),

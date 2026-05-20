@@ -54,7 +54,7 @@ export function ResultCard({
         </button>
       </div>
       <p
-        className={`mt-1 break-words font-mono font-semibold text-ink ${
+        className={`mt-1 whitespace-pre-wrap break-words font-mono font-semibold text-ink ${
           isPrimary ? "text-xl" : "text-lg"
         }`}
       >

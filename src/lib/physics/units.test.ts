@@ -95,8 +95,7 @@ describe("units", () => {
   it("rejects incompatible generic conversions at runtime", () => {
     expect(convertUnit(1, "m", "cm")).toBe(100);
 
-    const fromUnit: Unit = "m";
-    const toUnit: Unit = "g";
+    const [fromUnit, toUnit] = ["m", "g"] as Unit[];
     expect(() => convertUnit(1, fromUnit, toUnit)).toThrow(
       "Cannot convert m to g.",
     );

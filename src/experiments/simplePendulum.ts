@@ -21,14 +21,23 @@ export type SimplePendulumResult = {
   amplitudeRadians: Array<number | null>;
   amplitudeSquares: Array<number | null>;
   amplitudePeriods: Array<number | null>;
+  amplitudeMeanPeriods: Array<number | null>;
+  amplitudeRegressionSlope: number | null;
+  amplitudeRegressionIntercept: number | null;
+  amplitudeRegressionRSquared: number | null;
   amplitudeZeroPeriod: number | null;
   amplitudePeriodAtFiveDegrees: number | null;
   amplitudeIncreaseAtFiveDegrees: number | null;
   gravityPredictedTimes: Array<number | null>;
   gravityResiduals: Array<number | null>;
   gravityPeriod: number | null;
+  gravityIntercept: number | null;
+  gravityRSquared: number | null;
   gravity: number | null;
+  gravityDifference: number | null;
   gravityRelativeError: number | null;
+  reportExperiment1: string;
+  reportExperiment2: string;
   warnings: string[];
 };
 
@@ -74,11 +83,32 @@ function calculateAmplitudeRows(rows: string[][]) {
       ? null
       : calculatePeriodFromElapsedTime(elapsedSeconds, 10);
   });
-  const points = squares.flatMap((square, index) =>
-    square !== null && periods[index] !== null
-      ? [{ x: square, y: periods[index] }]
-      : [],
+  const grouped = new Map<string, { square: number; periods: number[] }>();
+  squares.forEach((square, index) => {
+    const period = periods[index];
+    if (square === null || period === null) {
+      return;
+    }
+
+    const key = square.toPrecision(15);
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.periods.push(period);
+    } else {
+      grouped.set(key, { square, periods: [period] });
+    }
+  });
+  const groupedMeans = Array.from(grouped.values()).map((group) => ({
+    x: group.square,
+    y: average(group.periods) ?? group.periods[0],
+  }));
+  const periodMeanBySquare = new Map(
+    groupedMeans.map((point) => [point.x.toPrecision(15), point.y]),
   );
+  const meanPeriods = squares.map((square) =>
+    square === null ? null : periodMeanBySquare.get(square.toPrecision(15)) ?? null,
+  );
+  const points = groupedMeans;
   const regression = linearLeastSquares(points);
   const fiveDegreesSquared = degreesToRadians(5) ** 2;
   const zeroPeriod = regression?.intercept ?? null;
@@ -93,6 +123,10 @@ function calculateAmplitudeRows(rows: string[][]) {
     radians,
     squares,
     periods,
+    meanPeriods,
+    slope: regression?.slope ?? null,
+    intercept: regression?.intercept ?? null,
+    rSquared: regression?.rSquared ?? null,
     zeroPeriod,
     periodAtFiveDegrees,
     increaseAtFiveDegrees,
@@ -127,8 +161,68 @@ function calculateGravityRows(rows: string[][]) {
     predictedTimes,
     residuals,
     period: regression?.slope ?? null,
+    intercept: regression?.intercept ?? null,
+    rSquared: regression?.rSquared ?? null,
     hasRegression: regression !== null,
   };
+}
+
+function formatReportNumber(value: number | null, unit = "", digits = 5): string {
+  if (value === null || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  const formatted = Number(value.toPrecision(digits)).toString();
+  return unit ? `${formatted} ${unit}` : formatted;
+}
+
+function buildReportExperiment1({
+  lengthAverage,
+  slope,
+  intercept,
+  periodAtFiveDegrees,
+  increaseAtFiveDegrees,
+}: {
+  lengthAverage: number | null;
+  slope: number | null;
+  intercept: number | null;
+  periodAtFiveDegrees: number | null;
+  increaseAtFiveDegrees: number | null;
+}): string {
+  const increasePercent =
+    increaseAtFiveDegrees === null ? null : increaseAtFiveDegrees * 100;
+
+  return [
+    `使用した振り子の長さ l = ${formatReportNumber(lengthAverage, "m")}`,
+    `T-phi_0^2 回帰式: T = ${formatReportNumber(slope, "s/rad^2")} phi_0^2 + ${formatReportNumber(intercept, "s")}`,
+    `phi_0 = 0 の外挿周期 T0 = ${formatReportNumber(intercept, "s")}`,
+    `phi_0 = 5 deg での周期 T(5 deg) = ${formatReportNumber(periodAtFiveDegrees, "s")}`,
+    `周期増加率 = ${formatReportNumber(increasePercent, "%")}`,
+    "考察下書き: phi_0 = 5 deg での増加率が十分小さければ、小角近似の範囲で等時性はよい近似で成り立つと考えられる。",
+  ].join("\n");
+}
+
+function buildReportExperiment2({
+  gravityPeriod,
+  gravityIntercept,
+  gravity,
+  gravityRelativeError,
+}: {
+  gravityPeriod: number | null;
+  gravityIntercept: number | null;
+  gravity: number | null;
+  gravityRelativeError: number | null;
+}): string {
+  const relativePercent =
+    gravityRelativeError === null ? null : gravityRelativeError * 100;
+
+  return [
+    `n-t 回帰式: t = ${formatReportNumber(gravityPeriod, "s")} n + ${formatReportNumber(gravityIntercept, "s")}`,
+    `回帰直線の傾きから求めた周期 T = ${formatReportNumber(gravityPeriod, "s")}`,
+    `重力加速度 g = ${formatReportNumber(gravity, "m/s^2")}`,
+    `標準重力加速度との相対誤差 = ${formatReportNumber(relativePercent, "%")}`,
+    "誤差要因候補: 振幅が5度を超えたこと、支点位置の読み取り、球の直径測定、周期測定時の反応時間、空気抵抗、振動面のずれ。",
+  ].join("\n");
 }
 
 export function calculateSimplePendulum(
@@ -141,8 +235,22 @@ export function calculateSimplePendulum(
   const amplitude = calculateAmplitudeRows(input.amplitudes);
   const gravityRegression = calculateGravityRows(input.gravity);
   const gravity = calculateGravityFromPeriod(lengthAverage, gravityRegression.period);
+  const gravityDifference = gravity === null ? null : gravity - STANDARD_GRAVITY;
   const gravityRelativeError =
     gravity === null ? null : Math.abs(gravity - STANDARD_GRAVITY) / STANDARD_GRAVITY;
+  const reportExperiment1 = buildReportExperiment1({
+    lengthAverage,
+    slope: amplitude.slope,
+    intercept: amplitude.intercept,
+    periodAtFiveDegrees: amplitude.periodAtFiveDegrees,
+    increaseAtFiveDegrees: amplitude.increaseAtFiveDegrees,
+  });
+  const reportExperiment2 = buildReportExperiment2({
+    gravityPeriod: gravityRegression.period,
+    gravityIntercept: gravityRegression.intercept,
+    gravity,
+    gravityRelativeError,
+  });
 
   const warnings = [
     lengthNumbers.length < 1 ? "振り子の長さ l を求めるには L と D の入力が必要です。" : null,
@@ -164,14 +272,23 @@ export function calculateSimplePendulum(
     amplitudeRadians: amplitude.radians,
     amplitudeSquares: amplitude.squares,
     amplitudePeriods: amplitude.periods,
+    amplitudeMeanPeriods: amplitude.meanPeriods,
+    amplitudeRegressionSlope: amplitude.slope,
+    amplitudeRegressionIntercept: amplitude.intercept,
+    amplitudeRegressionRSquared: amplitude.rSquared,
     amplitudeZeroPeriod: amplitude.zeroPeriod,
     amplitudePeriodAtFiveDegrees: amplitude.periodAtFiveDegrees,
     amplitudeIncreaseAtFiveDegrees: amplitude.increaseAtFiveDegrees,
     gravityPredictedTimes: gravityRegression.predictedTimes,
     gravityResiduals: gravityRegression.residuals,
     gravityPeriod: gravityRegression.period,
+    gravityIntercept: gravityRegression.intercept,
+    gravityRSquared: gravityRegression.rSquared,
     gravity,
+    gravityDifference,
     gravityRelativeError,
+    reportExperiment1,
+    reportExperiment2,
     warnings,
   };
 }
