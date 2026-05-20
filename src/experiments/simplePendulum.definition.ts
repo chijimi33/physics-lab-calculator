@@ -33,7 +33,7 @@ function exportSimplePendulumCsv({
   formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
-    csvRow(["第3回実験", "単振り子"]),
+    csvRow(["1-3 実験", "単振り子"]),
     "",
     csvRow(["Length measurements"]),
     csvRow(["No.", "L [cm]", "D [cm]", "l [m]"]),
@@ -107,6 +107,7 @@ function exportSimplePendulumCsv({
 export const simplePendulumExperiment: ExperimentDefinition = {
   id: "simple-pendulum",
   number: 3,
+  displayNumber: "1-3",
   slug: "simple-pendulum",
   title: "単振り子",
   description:

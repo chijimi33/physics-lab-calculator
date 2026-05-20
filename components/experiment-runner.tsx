@@ -509,7 +509,7 @@ function ExperimentWorkspace({
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-600">
-                第{experiment.number}回実験
+                {experiment.displayNumber ?? String(experiment.number)} 実験
               </p>
               <h1 className="mt-1 break-words text-2xl font-semibold leading-tight text-ink sm:text-3xl">
                 {experiment.title}

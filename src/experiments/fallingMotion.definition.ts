@@ -32,7 +32,7 @@ function exportFallingMotionCsv({
   formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
-    csvRow(["第2回実験", "落下の実験"]),
+    csvRow(["1-2 実験", "落下の実験"]),
     "",
     csvRow(["Free fall"]),
     csvRow(["No.", "t [s]", "x", "unit", "v [m/s]", "a [m/s^2]", "g_n [m/s^2]"]),
@@ -89,6 +89,7 @@ function exportFallingMotionCsv({
 export const fallingMotionExperiment: ExperimentDefinition = {
   id: "falling-motion",
   number: 2,
+  displayNumber: "1-2",
   slug: "falling-motion",
   title: "落下の実験",
   description:

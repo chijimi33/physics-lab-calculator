@@ -30,7 +30,7 @@ export default function Home() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-600">
-                    第{experiment.number}回実験
+                    {experiment.displayNumber ?? String(experiment.number)} 実験
                   </p>
                   <h2 className="mt-1 text-lg font-semibold text-ink">
                     {experiment.title}

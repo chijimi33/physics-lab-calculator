@@ -48,7 +48,7 @@ function exportMetalRodDensityCsv({
   formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
-    csvRow(["第1回実験", "金属棒の密度の測定"]),
+    csvRow(["1-1 実験", "金属棒の密度の測定"]),
     "",
     csvRow(["D measurements"]),
     csvRow(["No.", "D [cm]", "r_D_i", "r_D_i^2"]),
@@ -108,6 +108,7 @@ function exportMetalRodDensityCsv({
 export const metalRodDensityExperiment: ExperimentDefinition = {
   id: "density-metal-rod",
   number: 1,
+  displayNumber: "1-1",
   slug: "density-metal-rod",
   title: "金属棒の密度の測定",
   description:

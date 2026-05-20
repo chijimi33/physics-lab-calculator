@@ -101,6 +101,7 @@ export type CsvExportContext = {
 export type ExperimentDefinition = {
   id: string;
   number: number;
+  displayNumber?: string;
   slug: string;
   title: string;
   description: string;
