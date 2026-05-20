@@ -10,7 +10,9 @@ type ResultCardProps = {
   rawValue?: string;
   workingValue?: string;
   hiddenDigits?: string;
+  significantDigits?: string;
   roundingReason?: string;
+  precisionWarnings?: string[];
 };
 
 export function ResultCard({
@@ -23,7 +25,9 @@ export function ResultCard({
   rawValue,
   workingValue,
   hiddenDigits,
+  significantDigits,
   roundingReason,
+  precisionWarnings = [],
 }: ResultCardProps) {
   const textToCopy = copyText ?? `${label}: ${value}`;
   const isPrimary = priority === "primary";
@@ -56,7 +60,7 @@ export function ResultCard({
       >
         {value}
       </p>
-      {rawValue || workingValue || hiddenDigits || roundingReason ? (
+      {rawValue || workingValue || hiddenDigits || significantDigits || roundingReason ? (
         <dl className="mt-2 grid gap-1 text-xs leading-5 text-slate-600">
           {workingValue ? (
             <div className="flex flex-wrap gap-x-2">
@@ -76,6 +80,12 @@ export function ResultCard({
               <dd className="font-mono">{hiddenDigits}</dd>
             </div>
           ) : null}
+          {significantDigits ? (
+            <div className="flex flex-wrap gap-x-2">
+              <dt className="font-semibold">推定有効桁数:</dt>
+              <dd className="font-mono">{significantDigits}</dd>
+            </div>
+          ) : null}
           {roundingReason ? (
             <div className="flex flex-wrap gap-x-2">
               <dt className="font-semibold">丸め理由:</dt>
@@ -83,6 +93,13 @@ export function ResultCard({
             </div>
           ) : null}
         </dl>
+      ) : null}
+      {precisionWarnings.length > 0 ? (
+        <ul className="mt-2 space-y-1 text-xs leading-5 text-amber-800">
+          {precisionWarnings.map((warning) => (
+            <li key={warning}>{warning}</li>
+          ))}
+        </ul>
       ) : null}
       {formula ? <div className="mt-2">{formula}</div> : null}
       {detail ? <p className="mt-2 text-sm text-slate-600">{detail}</p> : null}
