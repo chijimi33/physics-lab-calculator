@@ -48,7 +48,7 @@ function exportMetalRodDensityCsv({
   formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
-    csvRow(["1-1 実験", "金属棒の密度の測定"]),
+    csvRow(["1-1", "金属棒の密度の測定"]),
     "",
     csvRow(["D measurements"]),
     csvRow(["No.", "D [cm]", "r_D_i", "r_D_i^2"]),
@@ -108,15 +108,18 @@ function exportMetalRodDensityCsv({
 export const metalRodDensityExperiment: ExperimentDefinition = {
   id: "density-metal-rod",
   number: 1,
-  displayNumber: "1-1",
-  slug: "density-metal-rod",
+  seriesNumber: 1,
+  experimentIndex: 1,
+  experimentNumber: "1-1",
+  slug: "1-1-density-metal-rod",
+  legacySlugs: ["density-metal-rod"],
   title: "金属棒の密度の測定",
   description:
     "直径、長さ、質量の測定値から金属棒の密度と誤差を求めます。",
   status: "stable",
   tags: ["密度", "誤差伝播", "有効数字"],
   lastUpdated: "2026-05-18",
-  csvExportDefinition: { enabled: true, filenamePrefix: "density-metal-rod" },
+  csvExportDefinition: { enabled: true, filenamePrefix: "physics-lab-1-1" },
   warnings: [
     "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。",
   ],

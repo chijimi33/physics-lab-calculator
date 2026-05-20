@@ -3,9 +3,16 @@ import { fallingMotionExperiment } from "./fallingMotion.definition";
 import { simplePendulumExperiment } from "./simplePendulum.definition";
 import type { ExperimentDefinition } from "./types";
 
+function createExperimentNumber(experiment: ExperimentDefinition): string {
+  return `${experiment.seriesNumber}-${experiment.experimentIndex}`;
+}
+
 function normalizeExperimentDefinition(
   experiment: ExperimentDefinition,
 ): ExperimentDefinition {
+  const experimentNumber =
+    experiment.experimentNumber || createExperimentNumber(experiment);
+
   return {
     status: "stable",
     tags: [],
@@ -13,6 +20,7 @@ function normalizeExperimentDefinition(
     csvExportDefinition: { enabled: Boolean(experiment.exportCsv) },
     warnings: [],
     ...experiment,
+    experimentNumber,
     inputSections: experiment.inputSections ?? experiment.inputs,
     resultDefinitions: experiment.resultDefinitions ?? experiment.results,
   };

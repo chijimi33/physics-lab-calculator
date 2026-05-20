@@ -316,6 +316,10 @@ function downloadText(filename: string, text: string, type: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
+function experimentFileStem(experiment: ExperimentDefinition): string {
+  return `physics-lab-${experiment.experimentNumber}`;
+}
+
 function parseImportedInput(
   experiment: ExperimentDefinition,
   value: unknown,
@@ -357,7 +361,9 @@ function parseImportedInput(
 }
 
 export function ExperimentRunner({ slug }: ExperimentRunnerProps) {
-  const experiment = experiments.find((item) => item.slug === slug);
+  const experiment = experiments.find(
+    (item) => item.slug === slug || item.legacySlugs?.includes(slug),
+  );
 
   if (!experiment) {
     return (
@@ -429,10 +435,13 @@ function ExperimentWorkspace({
 
   const exportJson = () => {
     downloadText(
-      `${experiment.slug}.json`,
+      `${experimentFileStem(experiment)}.json`,
       JSON.stringify(
         {
           experimentId: experiment.id,
+          experimentNumber: experiment.experimentNumber,
+          seriesNumber: experiment.seriesNumber,
+          experimentIndex: experiment.experimentIndex,
           exportedAt: new Date().toISOString(),
           input: rawInput,
           values: calculation.values,
@@ -509,7 +518,7 @@ function ExperimentWorkspace({
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-600">
-                {experiment.displayNumber ?? String(experiment.number)} 実験
+                {experiment.experimentNumber}
               </p>
               <h1 className="mt-1 break-words text-2xl font-semibold leading-tight text-ink sm:text-3xl">
                 {experiment.title}
@@ -553,7 +562,7 @@ function ExperimentWorkspace({
                   type="button"
                   onClick={() =>
                     downloadCsv(
-                      `${experiment.slug}.csv`,
+                      `${experimentFileStem(experiment)}.csv`,
                       experiment.exportCsv?.({
                         input: rawInput,
                         calculation,

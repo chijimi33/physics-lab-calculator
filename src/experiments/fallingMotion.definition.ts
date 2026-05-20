@@ -32,7 +32,7 @@ function exportFallingMotionCsv({
   formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
-    csvRow(["1-2 実験", "落下の実験"]),
+    csvRow(["1-2", "落下の実験"]),
     "",
     csvRow(["Free fall"]),
     csvRow(["No.", "t [s]", "x", "unit", "v [m/s]", "a [m/s^2]", "g_n [m/s^2]"]),
@@ -89,15 +89,18 @@ function exportFallingMotionCsv({
 export const fallingMotionExperiment: ExperimentDefinition = {
   id: "falling-motion",
   number: 2,
-  displayNumber: "1-2",
-  slug: "falling-motion",
+  seriesNumber: 1,
+  experimentIndex: 2,
+  experimentNumber: "1-2",
+  slug: "1-2-falling-motion",
+  legacySlugs: ["falling-motion"],
   title: "落下の実験",
   description:
     "位置 x と時刻 t の測定値から速度、加速度、重力加速度を求めます。",
   status: "beta",
   tags: ["力学", "有限差分", "回帰"],
   lastUpdated: "2026-05-18",
-  csvExportDefinition: { enabled: true, filenamePrefix: "falling-motion" },
+  csvExportDefinition: { enabled: true, filenamePrefix: "physics-lab-1-2" },
   warnings: [
     "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。",
   ],

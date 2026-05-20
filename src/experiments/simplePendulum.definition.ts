@@ -33,7 +33,7 @@ function exportSimplePendulumCsv({
   formatComputedValue,
 }: CsvExportContext): string {
   const rows: string[] = [
-    csvRow(["1-3 実験", "単振り子"]),
+    csvRow(["1-3", "単振り子"]),
     "",
     csvRow(["Length measurements"]),
     csvRow(["No.", "L [cm]", "D [cm]", "l [m]"]),
@@ -107,15 +107,18 @@ function exportSimplePendulumCsv({
 export const simplePendulumExperiment: ExperimentDefinition = {
   id: "simple-pendulum",
   number: 3,
-  displayNumber: "1-3",
-  slug: "simple-pendulum",
+  seriesNumber: 1,
+  experimentIndex: 3,
+  experimentNumber: "1-3",
+  slug: "1-3-simple-pendulum",
+  legacySlugs: ["simple-pendulum"],
   title: "単振り子",
   description:
     "振り子の長さ、周期、振幅依存性を測定し、重力加速度を求めます。",
   status: "beta",
   tags: ["力学", "単振動", "回帰"],
   lastUpdated: "2026-05-18",
-  csvExportDefinition: { enabled: true, filenamePrefix: "simple-pendulum" },
+  csvExportDefinition: { enabled: true, filenamePrefix: "physics-lab-1-3" },
   warnings: [
     "このツールは計算補助用です。提出前に、実験書・授業担当者の指示・自分の計算と照合してください。",
   ],
