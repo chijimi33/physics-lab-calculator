@@ -25,6 +25,30 @@ function valueFromComputed(
   return calculation.computedTables?.[tableId]?.[rowIndex]?.[key] ?? null;
 }
 
+function latexNumber(value: number | null | undefined, digits = 8): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  return Number(value.toPrecision(digits)).toString();
+}
+
+function sumFinite(values: Array<number | null>): number | null {
+  const usable = values.filter(
+    (value): value is number => value !== null && Number.isFinite(value),
+  );
+
+  return usable.length === 0
+    ? null
+    : usable.reduce((sum, value) => sum + value, 0);
+}
+
+function countFinite(values: Array<number | null>): number {
+  return values.filter(
+    (value): value is number => value !== null && Number.isFinite(value),
+  ).length;
+}
+
 function exportFallingMotionCsv({
   input,
   calculation,
@@ -208,6 +232,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       key: "gravityStandardError",
       label: "g の標準誤差",
       unit: units.acceleration,
+      formula: "m_g = \\frac{\\sigma_g}{\\sqrt{n}}",
     },
     {
       key: "gravityRegression",
@@ -221,11 +246,13 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       key: "maxResistanceVelocity",
       label: "抵抗ありの最大速度",
       unit: units.velocity,
+      formula: "v_{\\max}=\\max(v_n)",
     },
     {
       key: "terminalVelocityEstimate",
       label: "終端速度の推定値",
       unit: units.velocity,
+      formula: "v_t \\simeq \\frac{1}{k}\\sum_{i=N-k+1}^{N}v_i",
       detail: "最後の最大3点の速度平均",
     },
   ],
@@ -375,6 +402,12 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       freeFall: input.freeFall ?? [],
       resisted: input.resisted ?? [],
     });
+    const gravitySum = sumFinite(result.freeFallGravityValues);
+    const gravityCount = countFinite(result.freeFallGravityValues);
+    const resistanceVelocityCount = Math.min(
+      3,
+      countFinite(result.resistedVelocities),
+    );
 
     return {
       values: {
@@ -383,6 +416,13 @@ export const fallingMotionExperiment: ExperimentDefinition = {
         gravityRegression: result.gravityRegression,
         maxResistanceVelocity: result.maxResistanceVelocity,
         terminalVelocityEstimate: result.terminalVelocityEstimate,
+      },
+      substitutions: {
+        gravityAverage: `\\bar{g}=\\frac{${latexNumber(gravitySum)}}{${gravityCount}}=${latexNumber(result.gravityAverage)}`,
+        gravityStandardError: `m_g=\\frac{\\sigma_g}{\\sqrt{${gravityCount}}}=${latexNumber(result.gravityStandardError)}`,
+        gravityRegression: `x=A t^2,\\quad g=2A=2\\times ${latexNumber(result.gravityRegression === null ? null : result.gravityRegression / 2)}=${latexNumber(result.gravityRegression)}`,
+        maxResistanceVelocity: `v_{\\max}=\\max(v_n)=${latexNumber(result.maxResistanceVelocity)}`,
+        terminalVelocityEstimate: `v_t\\simeq\\frac{S_{\\mathrm{tail}}}{${resistanceVelocityCount}}=${latexNumber(result.terminalVelocityEstimate)}`,
       },
       computedTables: {
         freeFall: (input.freeFall ?? []).map((_row, index) => ({

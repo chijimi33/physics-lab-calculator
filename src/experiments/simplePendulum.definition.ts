@@ -26,6 +26,14 @@ function valueFromComputed(
   return calculation.computedTables?.[tableId]?.[rowIndex]?.[key] ?? null;
 }
 
+function latexNumber(value: number | null | undefined, digits = 8): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  return Number(value.toPrecision(digits)).toString();
+}
+
 function exportSimplePendulumCsv({
   input,
   calculation,
@@ -243,6 +251,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       key: "lengthStandardError",
       label: "l の標準誤差",
       unit: units.meter,
+      formula: "m_l = \\frac{\\sigma_l}{\\sqrt{n}}",
     },
     {
       key: "amplitudeZeroPeriod",
@@ -268,16 +277,19 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       key: "amplitudeRegressionRSquared",
       label: "T-phi_0^2 回帰の R^2",
+      formula: "R^2 = 1 - \\frac{\\sum (T_i-\\hat{T_i})^2}{\\sum (T_i-\\bar{T})^2}",
     },
     {
       key: "amplitudePeriodAtFiveDegrees",
       label: "phi_0 = 5 deg の周期",
       unit: units.second,
+      formula: "T(5^\\circ)=a\\left(\\frac{5\\pi}{180}\\right)^2+T_0",
     },
     {
       key: "amplitudeIncreaseAtFiveDegrees",
       label: "5 deg での周期増加率",
       kind: "percent",
+      formula: "\\frac{T(5^\\circ)-T_0}{T_0}",
     },
     {
       key: "gravityPeriod",
@@ -294,6 +306,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     {
       key: "gravityRSquared",
       label: "t-n 回帰の R^2",
+      formula: "R^2 = 1 - \\frac{\\sum (t_i-\\hat{t_i})^2}{\\sum (t_i-\\bar{t})^2}",
     },
     {
       key: "gravity",
@@ -307,12 +320,14 @@ export const simplePendulumExperiment: ExperimentDefinition = {
       key: "gravityDifference",
       label: "標準重力との差 g - g0",
       unit: units.acceleration,
+      formula: "g-g_0",
       detail: `標準重力 ${STANDARD_GRAVITY} m/s^2 との差`,
     },
     {
       key: "gravityRelativeError",
       label: "標準重力との相対誤差",
       kind: "percent",
+      formula: "\\left|\\frac{g-g_0}{g_0}\\right|",
       detail: `標準重力 ${STANDARD_GRAVITY} m/s^2 との相対差`,
     },
     {
@@ -425,6 +440,7 @@ export const simplePendulumExperiment: ExperimentDefinition = {
     });
     const amplitudeSlope = result.amplitudeRegressionSlope;
     const amplitudeIntercept = result.amplitudeRegressionIntercept;
+    const fiveDegreesRadians = 5 * Math.PI / 180;
 
     return {
       values: {
@@ -444,6 +460,22 @@ export const simplePendulumExperiment: ExperimentDefinition = {
         gravityRelativeError: result.gravityRelativeError,
         reportExperiment1: result.reportExperiment1,
         reportExperiment2: result.reportExperiment2,
+      },
+      substitutions: {
+        lengthAverage: `\\bar{l}=\\frac{\\sum\\left(L_i-D_i/2\\right)/100}{n}=${latexNumber(result.lengthAverage)}`,
+        lengthStandardError: `m_l=\\frac{\\sigma_l}{\\sqrt{n}}=${latexNumber(result.lengthStandardError)}`,
+        amplitudeRegressionSlope: `T=a\\phi_0^2+T_0,\\quad a=${latexNumber(result.amplitudeRegressionSlope)}`,
+        amplitudeRegressionIntercept: `T_0=b=${latexNumber(result.amplitudeRegressionIntercept)}`,
+        amplitudeRegressionRSquared: `R^2=1-\\frac{\\sum\\left(T_i-\\hat{T_i}\\right)^2}{\\sum\\left(T_i-\\bar{T}\\right)^2}=${latexNumber(result.amplitudeRegressionRSquared)}`,
+        amplitudeZeroPeriod: `T_0=${latexNumber(result.amplitudeZeroPeriod)}`,
+        amplitudePeriodAtFiveDegrees: `T(5^\\circ)=${latexNumber(result.amplitudeRegressionSlope)}\\times ${latexNumber(fiveDegreesRadians ** 2)}+${latexNumber(result.amplitudeRegressionIntercept)}=${latexNumber(result.amplitudePeriodAtFiveDegrees)}`,
+        amplitudeIncreaseAtFiveDegrees: `\\frac{T(5^\\circ)-T_0}{T_0}=\\frac{${latexNumber(result.amplitudePeriodAtFiveDegrees)}-${latexNumber(result.amplitudeZeroPeriod)}}{${latexNumber(result.amplitudeZeroPeriod)}}=${latexNumber(result.amplitudeIncreaseAtFiveDegrees)}`,
+        gravityPeriod: `t=Tn+b,\\quad T=${latexNumber(result.gravityPeriod)}`,
+        gravityIntercept: `b=${latexNumber(result.gravityIntercept)}`,
+        gravityRSquared: `R^2=1-\\frac{\\sum\\left(t_i-\\hat{t_i}\\right)^2}{\\sum\\left(t_i-\\bar{t}\\right)^2}=${latexNumber(result.gravityRSquared)}`,
+        gravity: `g=\\frac{4\\pi^2\\times ${latexNumber(result.lengthAverage)}}{${latexNumber(result.gravityPeriod)}^2}=${latexNumber(result.gravity)}`,
+        gravityDifference: `g-g_0=${latexNumber(result.gravity)}-${latexNumber(STANDARD_GRAVITY)}=${latexNumber(result.gravityDifference)}`,
+        gravityRelativeError: `\\left|\\frac{${latexNumber(result.gravity)}-${latexNumber(STANDARD_GRAVITY)}}{${latexNumber(STANDARD_GRAVITY)}}\\right|=${latexNumber(result.gravityRelativeError)}`,
       },
       computedTables: {
         lengths: result.lengthValues.map((value) => ({ l: value })),

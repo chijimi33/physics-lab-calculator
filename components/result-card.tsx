@@ -6,6 +6,7 @@ type ResultCardProps = {
   priority?: "primary" | "normal";
   detail?: string;
   formula?: ReactNode;
+  substitution?: ReactNode;
   copyText?: string;
   rawValue?: string;
   workingValue?: string;
@@ -21,6 +22,7 @@ export function ResultCard({
   priority = "normal",
   detail,
   formula,
+  substitution,
   copyText,
   rawValue,
   workingValue,
@@ -101,7 +103,26 @@ export function ResultCard({
           ))}
         </ul>
       ) : null}
-      {formula ? <div className="mt-2">{formula}</div> : null}
+      {formula || substitution ? (
+        <div className="mt-2 space-y-2">
+          {formula ? (
+            <div>
+              <p className="mb-1 text-xs font-semibold text-slate-600">
+                使用した公式
+              </p>
+              {formula}
+            </div>
+          ) : null}
+          {substitution ? (
+            <div>
+              <p className="mb-1 text-xs font-semibold text-slate-600">
+                数値を代入した式
+              </p>
+              {substitution}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {detail ? <p className="mt-2 text-sm text-slate-600">{detail}</p> : null}
     </div>
   );

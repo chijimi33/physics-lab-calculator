@@ -15,6 +15,7 @@ export type GraphSeriesData = Record<string, GraphPoint[]>;
 
 export type CalculationResult = {
   values: Record<string, ComputedValue>;
+  substitutions?: Record<string, string>;
   computedTables?: ComputedTableCells;
   graphs?: Record<string, GraphSeriesData>;
   warnings?: string[];
@@ -59,6 +60,7 @@ export type ResultDefinition = {
   errorKey?: string;
   unit?: string;
   formula?: string;
+  substitution?: string;
   detail?: string;
 };
 

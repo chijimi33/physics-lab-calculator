@@ -1048,6 +1048,9 @@ function ExperimentWorkspace({
               <div className="mt-3 grid gap-0 border-t border-rule">
                 {experiment.results.map((result) => {
                   const value = formatValue(result.key);
+                  const substitutionFormula =
+                    calculation.substitutions?.[result.key] ??
+                    result.substitution;
                   const calculatedValue = createResultCalculatedValue(
                     experiment,
                     result.key,
@@ -1113,6 +1116,11 @@ function ExperimentWorkspace({
                       formula={
                         result.formula ? (
                           <MathFormula inline formula={result.formula} />
+                        ) : null
+                      }
+                      substitution={
+                        substitutionFormula ? (
+                          <MathFormula formula={substitutionFormula} />
                         ) : null
                       }
                       detail={result.detail}

@@ -41,6 +41,30 @@ function selectedReferenceDensity(input: RawInputState): string {
   return input.referenceDensity?.[0]?.[0] ?? "";
 }
 
+function latexNumber(value: number | null | undefined, digits = 8): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "-";
+  }
+
+  return Number(value.toPrecision(digits)).toString();
+}
+
+function sumFinite(values: Array<number | null>): number | null {
+  const usable = values.filter(
+    (value): value is number => value !== null && Number.isFinite(value),
+  );
+
+  return usable.length === 0
+    ? null
+    : usable.reduce((sum, value) => sum + value, 0);
+}
+
+function countFinite(values: Array<number | null>): number {
+  return values.filter(
+    (value): value is number => value !== null && Number.isFinite(value),
+  ).length;
+}
+
 function exportMetalRodDensityCsv({
   input,
   calculation,
@@ -341,6 +365,16 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
       masses: getRawColumn(input, "samples", 1),
       referenceDensity: selectedReferenceDensity(input),
     });
+    const dSum = sumFinite(result.dValues.map((value) => value.value));
+    const dCount = result.dValues.length;
+    const aSum = sumFinite(result.aValues);
+    const aCount = countFinite(result.aValues);
+    const dSquaredResidualSum = sumFinite(result.dSquaredResiduals);
+    const aSquaredResidualSum = sumFinite(
+      result.aResiduals.map((value) =>
+        value !== null && Number.isFinite(value) ? value ** 2 : null,
+      ),
+    );
 
     return {
       values: {
@@ -356,6 +390,19 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
         referenceDensity: result.referenceDensity,
         referenceDifference: result.referenceDifference,
         referencePercentDifference: result.referencePercentDifference,
+      },
+      substitutions: {
+        dAverage: `\\bar{D}=\\frac{${latexNumber(dSum)}}{${dCount}}=${latexNumber(result.dAverage)}`,
+        sigmaD: `\\sigma_D=\\sqrt{\\frac{${latexNumber(dSquaredResidualSum)}}{${Math.max(dCount - 1, 0)}}}=${latexNumber(result.sigmaD)}`,
+        mD: `m_D=\\sqrt{\\frac{${latexNumber(dSquaredResidualSum)}}{${dCount}\\left(${Math.max(dCount - 1, 0)}\\right)}}=${latexNumber(result.mD)}`,
+        aAverage: `\\bar{a}=\\frac{${latexNumber(aSum)}}{${aCount}}=${latexNumber(result.aAverage)}`,
+        sigmaA: `\\sigma_a=\\sqrt{\\frac{${latexNumber(aSquaredResidualSum)}}{${Math.max(aCount - 1, 0)}}}=${latexNumber(result.sigmaA)}`,
+        mA: `m_a=\\sqrt{\\frac{${latexNumber(aSquaredResidualSum)}}{${aCount}\\left(${Math.max(aCount - 1, 0)}\\right)}}=${latexNumber(result.mA)}`,
+        rho: `\\rho=\\frac{4\\times ${latexNumber(result.aAverage)}}{\\pi\\times ${latexNumber(result.dAverage)}^2}=${latexNumber(result.rho)},\\quad m_\\rho=${latexNumber(result.mRho)}`,
+        relativeError: `\\frac{m_\\rho}{\\rho}=\\sqrt{\\left(\\frac{${latexNumber(result.mA)}}{${latexNumber(result.aAverage)}}\\right)^2+\\left(2\\frac{${latexNumber(result.mD)}}{${latexNumber(result.dAverage)}}\\right)^2}=${latexNumber(result.relativeError)}`,
+        referenceDensity: `\\rho_{\\mathrm{ref}}=${latexNumber(result.referenceDensity)}`,
+        referenceDifference: `\\rho-\\rho_{\\mathrm{ref}}=${latexNumber(result.rho)}-${latexNumber(result.referenceDensity)}=${latexNumber(result.referenceDifference)}`,
+        referencePercentDifference: `\\left|\\frac{${latexNumber(result.rho)}-${latexNumber(result.referenceDensity)}}{${latexNumber(result.referenceDensity)}}\\right|=${latexNumber(result.referencePercentDifference)}`,
       },
       computedTables: {
         diameters: result.dResiduals.map((value, index) => ({
