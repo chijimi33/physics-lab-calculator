@@ -1,6 +1,6 @@
 "use client";
 
-import type { ClipboardEvent } from "react";
+import type { ClipboardEvent, KeyboardEvent } from "react";
 import type { InputColumnDefinition } from "@/src/experiments";
 
 type MeasurementTableProps = {
@@ -53,22 +53,96 @@ export function MeasurementTable({
     columns.length + renderedComputedColumns.length + (onDeleteRow ? 2 : 1);
   const tableMinWidth = Math.max(560, tableColumnCount * 132);
 
-  const focusCell = (rowIndex: number, columnIndex: number) => {
+  const focusCell = (rowIndex: number, columnIndex: number): boolean => {
     const selector = `[data-table-id="${tableId}"][data-row-index="${rowIndex}"][data-column-index="${columnIndex}"]`;
     const element = document.querySelector<HTMLInputElement | HTMLSelectElement>(selector);
-    element?.focus();
+    if (!element) {
+      return false;
+    }
+
+    element.focus();
     if (element instanceof HTMLInputElement) {
       element.select();
     }
+
+    return true;
   };
 
-  const moveToNextCell = (rowIndex: number, columnIndex: number) => {
-    const nextColumn = columnIndex + 1;
-    if (nextColumn < editableColumnCount) {
-      focusCell(rowIndex, nextColumn);
+  const focusCellOrCreateRow = (rowIndex: number, columnIndex: number) => {
+    if (focusCell(rowIndex, columnIndex)) {
       return;
     }
-    focusCell(rowIndex + 1, 0);
+
+    if (rowIndex === rows.length && onAddRow) {
+      onAddRow();
+      window.requestAnimationFrame(() => focusCell(rowIndex, columnIndex));
+    }
+  };
+
+  const moveByOffset = (
+    rowIndex: number,
+    columnIndex: number,
+    rowOffset: number,
+    columnOffset: number,
+  ) => {
+    const nextColumnIndex = columnIndex + columnOffset;
+    if (nextColumnIndex < 0 || nextColumnIndex >= editableColumnCount) {
+      return;
+    }
+
+    const nextRowIndex = rowIndex + rowOffset;
+    if (nextRowIndex < 0) {
+      return;
+    }
+
+    focusCellOrCreateRow(nextRowIndex, nextColumnIndex);
+  };
+
+  const handleCellKeyDown = (
+    event: KeyboardEvent<HTMLInputElement | HTMLSelectElement>,
+    rowIndex: number,
+    columnIndex: number,
+  ) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      moveByOffset(rowIndex, columnIndex, event.shiftKey ? -1 : 1, 0);
+      return;
+    }
+
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      moveByOffset(rowIndex, columnIndex, event.key === "ArrowUp" ? -1 : 1, 0);
+      return;
+    }
+
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+      return;
+    }
+
+    if (event.currentTarget instanceof HTMLInputElement) {
+      const selectionStart = event.currentTarget.selectionStart ?? 0;
+      const selectionEnd = event.currentTarget.selectionEnd ?? 0;
+      const hasSelection = selectionStart !== selectionEnd;
+      const isAtStart = selectionStart === 0 && selectionEnd === 0;
+      const isAtEnd =
+        selectionStart === event.currentTarget.value.length &&
+        selectionEnd === event.currentTarget.value.length;
+
+      if (
+        hasSelection ||
+        (event.key === "ArrowLeft" && !isAtStart) ||
+        (event.key === "ArrowRight" && !isAtEnd)
+      ) {
+        return;
+      }
+    }
+
+    event.preventDefault();
+    moveByOffset(rowIndex, columnIndex, 0, event.key === "ArrowLeft" ? -1 : 1);
   };
 
   const handlePaste = (
@@ -170,12 +244,9 @@ export function MeasurementTable({
                         onChange={(event) =>
                           onChange(rowIndex, columnIndex, event.target.value)
                         }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            moveToNextCell(rowIndex, columnIndex);
-                          }
-                        }}
+                        onKeyDown={(event) =>
+                          handleCellKeyDown(event, rowIndex, columnIndex)
+                        }
                         className="w-full min-w-28 border border-rule bg-white px-2 py-1.5 text-[15px] outline-none transition focus:border-accent focus:ring-1 focus:ring-accent focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
                       >
                         {columnDefinitions[columnIndex].options?.map((option) => (
@@ -202,12 +273,9 @@ export function MeasurementTable({
                           onChange(rowIndex, columnIndex, event.target.value)
                         }
                         onPaste={(event) => handlePaste(event, rowIndex, columnIndex)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            moveToNextCell(rowIndex, columnIndex);
-                          }
-                        }}
+                        onKeyDown={(event) =>
+                          handleCellKeyDown(event, rowIndex, columnIndex)
+                        }
                         className="w-full min-w-28 border border-rule bg-white px-2 py-1.5 text-[15px] outline-none transition placeholder:text-slate-400 focus:border-accent focus:ring-1 focus:ring-accent focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
                       />
                     )}
