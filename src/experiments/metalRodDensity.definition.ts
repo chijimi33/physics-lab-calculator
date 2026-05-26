@@ -9,6 +9,13 @@ import {
   METAL_ROD_REFERENCE_DENSITIES,
   calculateMetalRodDensity,
 } from "./metalRodDensity";
+import {
+  allFinite,
+  compactSubstitutions,
+  countFinite,
+  latexNumber,
+  sumFinite,
+} from "./substitutions";
 import { units } from "@/src/lib/physics/units";
 
 function getRawColumn(
@@ -39,30 +46,6 @@ function valueFromComputed(
 
 function selectedReferenceDensity(input: RawInputState): string {
   return input.referenceDensity?.[0]?.[0] ?? "";
-}
-
-function latexNumber(value: number | null | undefined, digits = 8): string {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "-";
-  }
-
-  return Number(value.toPrecision(digits)).toString();
-}
-
-function sumFinite(values: Array<number | null>): number | null {
-  const usable = values.filter(
-    (value): value is number => value !== null && Number.isFinite(value),
-  );
-
-  return usable.length === 0
-    ? null
-    : usable.reduce((sum, value) => sum + value, 0);
-}
-
-function countFinite(values: Array<number | null>): number {
-  return values.filter(
-    (value): value is number => value !== null && Number.isFinite(value),
-  ).length;
 }
 
 function exportMetalRodDensityCsv({
@@ -391,19 +374,65 @@ export const metalRodDensityExperiment: ExperimentDefinition = {
         referenceDifference: result.referenceDifference,
         referencePercentDifference: result.referencePercentDifference,
       },
-      substitutions: {
-        dAverage: `\\bar{D}=\\frac{${latexNumber(dSum)}}{${dCount}}=${latexNumber(result.dAverage)}`,
-        sigmaD: `\\sigma_D=\\sqrt{\\frac{${latexNumber(dSquaredResidualSum)}}{${Math.max(dCount - 1, 0)}}}=${latexNumber(result.sigmaD)}`,
-        mD: `m_D=\\sqrt{\\frac{${latexNumber(dSquaredResidualSum)}}{${dCount}\\left(${Math.max(dCount - 1, 0)}\\right)}}=${latexNumber(result.mD)}`,
-        aAverage: `\\bar{a}=\\frac{${latexNumber(aSum)}}{${aCount}}=${latexNumber(result.aAverage)}`,
-        sigmaA: `\\sigma_a=\\sqrt{\\frac{${latexNumber(aSquaredResidualSum)}}{${Math.max(aCount - 1, 0)}}}=${latexNumber(result.sigmaA)}`,
-        mA: `m_a=\\sqrt{\\frac{${latexNumber(aSquaredResidualSum)}}{${aCount}\\left(${Math.max(aCount - 1, 0)}\\right)}}=${latexNumber(result.mA)}`,
-        rho: `\\rho=\\frac{4\\times ${latexNumber(result.aAverage)}}{\\pi\\times ${latexNumber(result.dAverage)}^2}=${latexNumber(result.rho)},\\quad m_\\rho=${latexNumber(result.mRho)}`,
-        relativeError: `\\frac{m_\\rho}{\\rho}=\\sqrt{\\left(\\frac{${latexNumber(result.mA)}}{${latexNumber(result.aAverage)}}\\right)^2+\\left(2\\frac{${latexNumber(result.mD)}}{${latexNumber(result.dAverage)}}\\right)^2}=${latexNumber(result.relativeError)}`,
-        referenceDensity: `\\rho_{\\mathrm{ref}}=${latexNumber(result.referenceDensity)}`,
-        referenceDifference: `\\rho-\\rho_{\\mathrm{ref}}=${latexNumber(result.rho)}-${latexNumber(result.referenceDensity)}=${latexNumber(result.referenceDifference)}`,
-        referencePercentDifference: `\\left|\\frac{${latexNumber(result.rho)}-${latexNumber(result.referenceDensity)}}{${latexNumber(result.referenceDensity)}}\\right|=${latexNumber(result.referencePercentDifference)}`,
-      },
+      substitutions: compactSubstitutions({
+        dAverage:
+          dCount > 0 && allFinite([dSum, result.dAverage])
+            ? `\\bar{D}=\\frac{${latexNumber(dSum)}}{${dCount}}=${latexNumber(result.dAverage)}`
+            : null,
+        sigmaD:
+          dCount >= 2 && allFinite([dSquaredResidualSum, result.sigmaD])
+            ? `\\sigma_D=\\sqrt{\\frac{${latexNumber(dSquaredResidualSum)}}{${dCount - 1}}}=${latexNumber(result.sigmaD)}`
+            : null,
+        mD:
+          dCount >= 2 && allFinite([dSquaredResidualSum, result.mD])
+            ? `m_D=\\sqrt{\\frac{${latexNumber(dSquaredResidualSum)}}{${dCount}\\left(${dCount - 1}\\right)}}=${latexNumber(result.mD)}`
+            : null,
+        aAverage:
+          aCount > 0 && allFinite([aSum, result.aAverage])
+            ? `\\bar{a}=\\frac{${latexNumber(aSum)}}{${aCount}}=${latexNumber(result.aAverage)}`
+            : null,
+        sigmaA:
+          aCount >= 2 && allFinite([aSquaredResidualSum, result.sigmaA])
+            ? `\\sigma_a=\\sqrt{\\frac{${latexNumber(aSquaredResidualSum)}}{${aCount - 1}}}=${latexNumber(result.sigmaA)}`
+            : null,
+        mA:
+          aCount >= 2 && allFinite([aSquaredResidualSum, result.mA])
+            ? `m_a=\\sqrt{\\frac{${latexNumber(aSquaredResidualSum)}}{${aCount}\\left(${aCount - 1}\\right)}}=${latexNumber(result.mA)}`
+            : null,
+        rho:
+          allFinite([result.aAverage, result.dAverage, result.rho])
+            ? `\\rho=\\frac{4\\times ${latexNumber(result.aAverage)}}{\\pi\\times ${latexNumber(result.dAverage)}^2}=${latexNumber(result.rho)}${
+                allFinite([result.mRho])
+                  ? `,\\quad m_\\rho=${latexNumber(result.mRho)}`
+                  : ""
+              }`
+            : null,
+        relativeError:
+          allFinite([
+            result.mA,
+            result.aAverage,
+            result.mD,
+            result.dAverage,
+            result.relativeError,
+          ])
+            ? `\\frac{m_\\rho}{\\rho}=\\sqrt{\\left(\\frac{${latexNumber(result.mA)}}{${latexNumber(result.aAverage)}}\\right)^2+\\left(2\\frac{${latexNumber(result.mD)}}{${latexNumber(result.dAverage)}}\\right)^2}=${latexNumber(result.relativeError)}`
+            : null,
+        referenceDensity: allFinite([result.referenceDensity])
+          ? `\\rho_{\\mathrm{ref}}=${latexNumber(result.referenceDensity)}`
+          : null,
+        referenceDifference:
+          allFinite([result.rho, result.referenceDensity, result.referenceDifference])
+            ? `\\rho-\\rho_{\\mathrm{ref}}=${latexNumber(result.rho)}-${latexNumber(result.referenceDensity)}=${latexNumber(result.referenceDifference)}`
+            : null,
+        referencePercentDifference:
+          allFinite([
+            result.rho,
+            result.referenceDensity,
+            result.referencePercentDifference,
+          ])
+            ? `\\left|\\frac{${latexNumber(result.rho)}-${latexNumber(result.referenceDensity)}}{${latexNumber(result.referenceDensity)}}\\right|=${latexNumber(result.referencePercentDifference)}`
+            : null,
+      }),
       computedTables: {
         diameters: result.dResiduals.map((value, index) => ({
           rD: value,

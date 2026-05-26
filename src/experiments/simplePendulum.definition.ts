@@ -5,6 +5,11 @@ import type {
   RawInputState,
 } from "./types";
 import { calculateSimplePendulum } from "./simplePendulum";
+import {
+  allFinite,
+  compactSubstitutions,
+  latexNumber,
+} from "./substitutions";
 import { STANDARD_GRAVITY } from "@/src/lib/physics/pendulum";
 import { units } from "@/src/lib/physics/units";
 
@@ -24,14 +29,6 @@ function valueFromComputed(
   key: string,
 ) {
   return calculation.computedTables?.[tableId]?.[rowIndex]?.[key] ?? null;
-}
-
-function latexNumber(value: number | null | undefined, digits = 8): string {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "-";
-  }
-
-  return Number(value.toPrecision(digits)).toString();
 }
 
 function exportSimplePendulumCsv({
@@ -461,22 +458,67 @@ export const simplePendulumExperiment: ExperimentDefinition = {
         reportExperiment1: result.reportExperiment1,
         reportExperiment2: result.reportExperiment2,
       },
-      substitutions: {
-        lengthAverage: `\\bar{l}=\\frac{\\sum\\left(L_i-D_i/2\\right)/100}{n}=${latexNumber(result.lengthAverage)}`,
-        lengthStandardError: `m_l=\\frac{\\sigma_l}{\\sqrt{n}}=${latexNumber(result.lengthStandardError)}`,
-        amplitudeRegressionSlope: `T=a\\phi_0^2+T_0,\\quad a=${latexNumber(result.amplitudeRegressionSlope)}`,
-        amplitudeRegressionIntercept: `T_0=b=${latexNumber(result.amplitudeRegressionIntercept)}`,
-        amplitudeRegressionRSquared: `R^2=1-\\frac{\\sum\\left(T_i-\\hat{T_i}\\right)^2}{\\sum\\left(T_i-\\bar{T}\\right)^2}=${latexNumber(result.amplitudeRegressionRSquared)}`,
-        amplitudeZeroPeriod: `T_0=${latexNumber(result.amplitudeZeroPeriod)}`,
-        amplitudePeriodAtFiveDegrees: `T(5^\\circ)=${latexNumber(result.amplitudeRegressionSlope)}\\times ${latexNumber(fiveDegreesRadians ** 2)}+${latexNumber(result.amplitudeRegressionIntercept)}=${latexNumber(result.amplitudePeriodAtFiveDegrees)}`,
-        amplitudeIncreaseAtFiveDegrees: `\\frac{T(5^\\circ)-T_0}{T_0}=\\frac{${latexNumber(result.amplitudePeriodAtFiveDegrees)}-${latexNumber(result.amplitudeZeroPeriod)}}{${latexNumber(result.amplitudeZeroPeriod)}}=${latexNumber(result.amplitudeIncreaseAtFiveDegrees)}`,
-        gravityPeriod: `t=Tn+b,\\quad T=${latexNumber(result.gravityPeriod)}`,
-        gravityIntercept: `b=${latexNumber(result.gravityIntercept)}`,
-        gravityRSquared: `R^2=1-\\frac{\\sum\\left(t_i-\\hat{t_i}\\right)^2}{\\sum\\left(t_i-\\bar{t}\\right)^2}=${latexNumber(result.gravityRSquared)}`,
-        gravity: `g=\\frac{4\\pi^2\\times ${latexNumber(result.lengthAverage)}}{${latexNumber(result.gravityPeriod)}^2}=${latexNumber(result.gravity)}`,
-        gravityDifference: `g-g_0=${latexNumber(result.gravity)}-${latexNumber(STANDARD_GRAVITY)}=${latexNumber(result.gravityDifference)}`,
-        gravityRelativeError: `\\left|\\frac{${latexNumber(result.gravity)}-${latexNumber(STANDARD_GRAVITY)}}{${latexNumber(STANDARD_GRAVITY)}}\\right|=${latexNumber(result.gravityRelativeError)}`,
-      },
+      substitutions: compactSubstitutions({
+        lengthAverage: allFinite([result.lengthAverage])
+          ? `\\bar{l}=\\frac{\\sum\\left(L_i-D_i/2\\right)/100}{n}=${latexNumber(result.lengthAverage)}`
+          : null,
+        lengthStandardError: allFinite([result.lengthStandardError])
+          ? `m_l=\\frac{\\sigma_l}{\\sqrt{n}}=${latexNumber(result.lengthStandardError)}`
+          : null,
+        amplitudeRegressionSlope: allFinite([result.amplitudeRegressionSlope])
+          ? `T=a\\phi_0^2+T_0,\\quad a=${latexNumber(result.amplitudeRegressionSlope)}`
+          : null,
+        amplitudeRegressionIntercept: allFinite([
+          result.amplitudeRegressionIntercept,
+        ])
+          ? `T_0=b=${latexNumber(result.amplitudeRegressionIntercept)}`
+          : null,
+        amplitudeRegressionRSquared: allFinite([
+          result.amplitudeRegressionRSquared,
+        ])
+          ? `R^2=1-\\frac{\\sum\\left(T_i-\\hat{T_i}\\right)^2}{\\sum\\left(T_i-\\bar{T}\\right)^2}=${latexNumber(result.amplitudeRegressionRSquared)}`
+          : null,
+        amplitudeZeroPeriod: allFinite([result.amplitudeZeroPeriod])
+          ? `T_0=${latexNumber(result.amplitudeZeroPeriod)}`
+          : null,
+        amplitudePeriodAtFiveDegrees:
+          allFinite([
+            result.amplitudeRegressionSlope,
+            result.amplitudeRegressionIntercept,
+            result.amplitudePeriodAtFiveDegrees,
+          ])
+            ? `T(5^\\circ)=${latexNumber(result.amplitudeRegressionSlope)}\\times ${latexNumber(fiveDegreesRadians ** 2)}+${latexNumber(result.amplitudeRegressionIntercept)}=${latexNumber(result.amplitudePeriodAtFiveDegrees)}`
+            : null,
+        amplitudeIncreaseAtFiveDegrees:
+          allFinite([
+            result.amplitudePeriodAtFiveDegrees,
+            result.amplitudeZeroPeriod,
+            result.amplitudeIncreaseAtFiveDegrees,
+          ])
+            ? `\\frac{T(5^\\circ)-T_0}{T_0}=\\frac{${latexNumber(result.amplitudePeriodAtFiveDegrees)}-${latexNumber(result.amplitudeZeroPeriod)}}{${latexNumber(result.amplitudeZeroPeriod)}}=${latexNumber(result.amplitudeIncreaseAtFiveDegrees)}`
+            : null,
+        gravityPeriod: allFinite([result.gravityPeriod])
+          ? `t=Tn+b,\\quad T=${latexNumber(result.gravityPeriod)}`
+          : null,
+        gravityIntercept: allFinite([result.gravityIntercept])
+          ? `b=${latexNumber(result.gravityIntercept)}`
+          : null,
+        gravityRSquared: allFinite([result.gravityRSquared])
+          ? `R^2=1-\\frac{\\sum\\left(t_i-\\hat{t_i}\\right)^2}{\\sum\\left(t_i-\\bar{t}\\right)^2}=${latexNumber(result.gravityRSquared)}`
+          : null,
+        gravity:
+          allFinite([result.lengthAverage, result.gravityPeriod, result.gravity])
+            ? `g=\\frac{4\\pi^2\\times ${latexNumber(result.lengthAverage)}}{${latexNumber(result.gravityPeriod)}^2}=${latexNumber(result.gravity)}`
+            : null,
+        gravityDifference:
+          allFinite([result.gravity, result.gravityDifference])
+            ? `g-g_0=${latexNumber(result.gravity)}-${latexNumber(STANDARD_GRAVITY)}=${latexNumber(result.gravityDifference)}`
+            : null,
+        gravityRelativeError:
+          allFinite([result.gravity, result.gravityRelativeError])
+            ? `\\left|\\frac{${latexNumber(result.gravity)}-${latexNumber(STANDARD_GRAVITY)}}{${latexNumber(STANDARD_GRAVITY)}}\\right|=${latexNumber(result.gravityRelativeError)}`
+            : null,
+      }),
       computedTables: {
         lengths: result.lengthValues.map((value) => ({ l: value })),
         amplitudes: result.amplitudePeriods.map((value, index) => ({

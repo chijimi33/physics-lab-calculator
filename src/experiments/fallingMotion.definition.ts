@@ -5,6 +5,14 @@ import type {
   RawInputState,
 } from "./types";
 import { calculateFallingMotion } from "./fallingMotion";
+import {
+  allFinite,
+  compactSubstitutions,
+  countFinite,
+  isFiniteNumber,
+  latexNumber,
+  sumFinite,
+} from "./substitutions";
 import { units } from "@/src/lib/physics/units";
 
 function csvEscape(value: string | number | null | undefined): string {
@@ -23,30 +31,6 @@ function valueFromComputed(
   key: string,
 ) {
   return calculation.computedTables?.[tableId]?.[rowIndex]?.[key] ?? null;
-}
-
-function latexNumber(value: number | null | undefined, digits = 8): string {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "-";
-  }
-
-  return Number(value.toPrecision(digits)).toString();
-}
-
-function sumFinite(values: Array<number | null>): number | null {
-  const usable = values.filter(
-    (value): value is number => value !== null && Number.isFinite(value),
-  );
-
-  return usable.length === 0
-    ? null
-    : usable.reduce((sum, value) => sum + value, 0);
-}
-
-function countFinite(values: Array<number | null>): number {
-  return values.filter(
-    (value): value is number => value !== null && Number.isFinite(value),
-  ).length;
 }
 
 function exportFallingMotionCsv({
@@ -408,6 +392,7 @@ export const fallingMotionExperiment: ExperimentDefinition = {
       3,
       countFinite(result.resistedVelocities),
     );
+    const gravityRegression = result.gravityRegression;
 
     return {
       values: {
@@ -417,13 +402,28 @@ export const fallingMotionExperiment: ExperimentDefinition = {
         maxResistanceVelocity: result.maxResistanceVelocity,
         terminalVelocityEstimate: result.terminalVelocityEstimate,
       },
-      substitutions: {
-        gravityAverage: `\\bar{g}=\\frac{${latexNumber(gravitySum)}}{${gravityCount}}=${latexNumber(result.gravityAverage)}`,
-        gravityStandardError: `m_g=\\frac{\\sigma_g}{\\sqrt{${gravityCount}}}=${latexNumber(result.gravityStandardError)}`,
-        gravityRegression: `x=A t^2,\\quad g=2A=2\\times ${latexNumber(result.gravityRegression === null ? null : result.gravityRegression / 2)}=${latexNumber(result.gravityRegression)}`,
-        maxResistanceVelocity: `v_{\\max}=\\max(v_n)=${latexNumber(result.maxResistanceVelocity)}`,
-        terminalVelocityEstimate: `v_t\\simeq\\frac{S_{\\mathrm{tail}}}{${resistanceVelocityCount}}=${latexNumber(result.terminalVelocityEstimate)}`,
-      },
+      substitutions: compactSubstitutions({
+        gravityAverage:
+          gravityCount > 0 && allFinite([gravitySum, result.gravityAverage])
+            ? `\\bar{g}=\\frac{${latexNumber(gravitySum)}}{${gravityCount}}=${latexNumber(result.gravityAverage)}`
+            : null,
+        gravityStandardError:
+          gravityCount >= 2 && allFinite([result.gravityStandardError])
+            ? `m_g=\\frac{\\sigma_g}{\\sqrt{${gravityCount}}}=${latexNumber(result.gravityStandardError)}`
+            : null,
+        gravityRegression:
+          isFiniteNumber(gravityRegression)
+            ? `x=A t^2,\\quad g=2A=2\\times ${latexNumber(gravityRegression / 2)}=${latexNumber(gravityRegression)}`
+            : null,
+        maxResistanceVelocity: allFinite([result.maxResistanceVelocity])
+          ? `v_{\\max}=\\max(v_n)=${latexNumber(result.maxResistanceVelocity)}`
+          : null,
+        terminalVelocityEstimate:
+          resistanceVelocityCount > 0 &&
+          allFinite([result.terminalVelocityEstimate])
+            ? `v_t\\simeq\\frac{S_{\\mathrm{tail}}}{${resistanceVelocityCount}}=${latexNumber(result.terminalVelocityEstimate)}`
+            : null,
+      }),
       computedTables: {
         freeFall: (input.freeFall ?? []).map((_row, index) => ({
           v: result.freeFallVelocities[index] ?? null,
